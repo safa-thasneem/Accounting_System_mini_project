@@ -1,11 +1,49 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>graphs</title>
-</head>
-<body>
-<h1>you can see here graphs</h1>
-</body>
-</html>
+<canvas id="salesPurchaseChart"></canvas>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Fetch data from Django
+        fetch('/sales-purchase-data/')  // URL that matches your Django URL pattern
+            .then(response => response.json())
+            .then(data => {
+                const ctx = document.getElementById('salesPurchaseChart').getContext('2d');
+                const salesPurchaseChart = new Chart(ctx, {
+                    type: 'line',  // You can change it to 'bar' or other types
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: 'Sales',
+                            data: data.sales,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 2,
+                            fill: false,
+                        }, {
+                            label: 'Purchases',
+                            data: data.purchases,
+                            borderColor: 'rgba(153, 102, 255, 1)',
+                            borderWidth: 2,
+                            fill: false,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        title: {
+                            display: true,
+                            text: 'Sales vs. Purchases Over Time'
+                        },
+                        scales: {
+                            x: {
+                                type: 'time',
+                                time: {
+                                    unit: 'day'
+                                }
+                            },
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            });
+    });
+</script>

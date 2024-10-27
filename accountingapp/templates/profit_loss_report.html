@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profit and Loss Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        table {
+            width: 100%;
+            max-width: 800px;
+            margin: 20px auto;
+            border-collapse: collapse;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #ddd;
+        }
+        .total-row {
+            font-weight: bold;
+            background-color: #e8f5e9;
+        }
+        .profit {
+            color: #4CAF50;
+        }
+        .loss {
+            color: #f44336;
+        }
+        .summary {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.2em;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <h1>Profit and Loss Report</h1>
+    <table>
+        <tr>
+            <th>Total Sales</th>
+            <td>${{ total_sales }}</td>
+        </tr>
+        <tr>
+            <th>Total Purchases</th>
+            <td>${{ total_purchases }}</td>
+        </tr>
+        <tr class="total-row">
+            <th>Profit</th>
+            <td class="profit">${{ profit }}</td>
+        </tr>
+        <tr class="total-row">
+            <th>Loss</th>
+            <td class="loss">${{ loss }}</td>
+        </tr>
+    </table>
+    <div class="summary">
+        <p>Analyze your financial performance and make informed decisions!</p>
+    </div>
+</body>
+</html>

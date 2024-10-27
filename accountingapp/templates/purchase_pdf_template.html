@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase Order</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        .total {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Purchase Order</h1>
+
+<p><strong>Purchase ID:</strong> {{ purchase.id }}</p>
+<p><strong>Party Name:</strong> {{ purchase.party.name }}</p>
+<p><strong>Date:</strong> {{ purchase.created_at }}</p>
+
+<table>
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Item Name</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th>Tax (%)</th>
+            <th>Discount (%)</th>
+            <th>Total</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ item.item.name }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.item.price }}</td>
+            <td>{{ item.item.tax_rate }}</td>
+            <td>{{ item.item.discount_rate }}</td>
+            <td>{{ item.total }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div class="total">
+    Total Amount: {{ purchase.total_amount }}<br>
+    Total Tax: {{ total_tax }}<br>
+    Total Discount: {{ purchase.total_discount }}
+</div>
+
+</body>
+</html>

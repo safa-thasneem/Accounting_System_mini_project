@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Out of Stock</title>
+    <style>
+        /* Modal Container */
+        .modal {
+            display: block; /* Show the modal by default */
+            position: fixed;
+            z-index: 999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Background overlay */
+        }
+
+        /* Modal Content Box */
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            width: 400px;
+            max-width: 90%;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        /* Out of Stock Icon */
+        .out-of-stock-icon {
+            font-size: 48px; /* Adjust size as needed */
+            color: #ff9900; /* Out of stock color */
+            margin-bottom: 15px;
+        }
+
+        /* Close Button */
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* Button Styling */
+        .modal-button {
+            background-color: red;
+            border: none;
+            padding: 10px 20px;
+            color: white;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+    <script>
+        // JavaScript function to redirect to create_bill
+        function redirectToCreateBill() {
+            window.location.href = '/home/create_bill'; // Adjust URL to your Django route
+        }
+    </script>
+</head>
+<body>
+    <div class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="redirectToCreateBill();">&times;</span>
+            <div class="out-of-stock-icon">📦</div> <!-- Out of Stock Icon -->
+            <p><b>{{ item_name }}  Out of stock!! </b>Please select another item.</p>
+            <button class="modal-button" onclick="redirectToCreateBill();">OK</button>
+        </div>
+    </div>
+</body>
+</html>

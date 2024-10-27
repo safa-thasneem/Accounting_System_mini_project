@@ -1,17 +1,24 @@
 import csv
-import logging
 from datetime import datetime
+import logging
+from django.contrib import messages
+from django.urls import reverse
+
 from decimal import Decimal
 from lib2to3.fixes.fix_input import context
 from re import search
 
 from django.contrib import auth, messages
 from django.contrib.auth.models import User
-from django.db.models import Sum, Q
-from django.http import HttpResponse, JsonResponse
+from django.db import transaction
+from django.db.models import Sum, Q, F
+from django.db.models.functions import TruncMonth, ExtractYear
+from django.http import HttpResponse, JsonResponse, request
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.template.loader import get_template
+from django.urls import reverse
+from django.utils import timezone
 
 from .forms import ItemForm, CategoryForm, PartyForm, CustomUserCreationForm, PurchaseForm, BillForm
 from .models import Item, Category, Parties,  Purchase, PurchaseItem, BillItem, Bill
@@ -29,6 +36,31 @@ def dashboard(request):
 
     return render(request, 'base.html')
 
+def dashboard_view(request):
+    # Aggregate data by year instead of day-by-day
+    sales = Bill.objects.annotate(year=ExtractYear('created_at')).values('year').annotate(total=Sum('total_amount'))
+    purchases = Purchase.objects.annotate(year=ExtractYear('created_at')).values('year').annotate(total=Sum('total_amount'))
+
+    # Process the data
+    sales_data = [float(sale['total']) for sale in sales]
+    purchase_data = [float(purchase['total']) for purchase in purchases]
+
+    # Extract the year labels
+    labels = [sale['year'] for sale in sales]
+
+    # Calculate profit/loss data for each year
+    profit_loss_data = [
+        sales_data[i] - purchase_data[i] if i < len(purchase_data) else sales_data[i]
+        for i in range(len(sales_data))
+    ]
+
+    context = {
+        'sales_data': sales_data,
+        'purchase_data': purchase_data,
+        'profit_loss_data': profit_loss_data,
+        'labels': labels,
+    }
+    return render(request, 'dashboard.html', context)
 
 def register(request):
     if request.method == 'POST':
@@ -40,6 +72,7 @@ def register(request):
         form = CustomUserCreationForm()  # This ensures the form is always defined
 
     return render(request, 'register.html', {'form': form})
+
 def login_view(request):
     if request.method == 'POST':
         username = request.POST['username']
@@ -58,17 +91,21 @@ def logout_view(request):
     logout(request)
     return redirect('/')
 
-def dashboard_view(request):
-    # Your dynamic data can come from your database or calculations
-    sales_data = [12000, 15000, 8000, 19000, 13000, 17000]
-    months = ['January', 'February', 'March', 'April', 'May', 'June']
-
-    return render(request, 'dashboard.html', {
-        'sales_data': sales_data,
-        'months': months,
-    })
-
-
+# def dashboard_view(request):
+#     sales_data = Bill.objects.values('date').annotate(total_sales=Sum('amount'))
+#     purchase_data = Purchase.objects.values('date').annotate(total_purchases=Sum('amount'))
+#
+#     # Convert to list for easier JSON serialization
+#     sales_dates = [entry['date'] for entry in sales_data]
+#     total_sales = [entry['total_sales'] for entry in sales_data]
+#     total_purchases = [entry['total_purchases'] for entry in purchase_data]
+#
+#     context = {
+#         'sales_dates': sales_dates,
+#         'total_sales': total_sales,
+#         'total_purchases': total_purchases,
+#     }
+#     return render(request, 'dashboard.html', context)
 
 def item_list(request):
     search_query = request.GET.get('search', '')  # Get the search query from the request
@@ -145,6 +182,7 @@ def add_category(request):
     else:
         form = CategoryForm()
     return render(request, 'add_category.html', {'form': form})
+
 def update_category(request, pk):
     category = get_object_or_404(Category, pk=pk)
     if request.method == 'POST':
@@ -219,155 +257,116 @@ def delete_party(request, pk):
 
 logger = logging.getLogger(__name__)
 
+
+
+
 def create_bill(request):
     if request.method == "POST":
-        # Ensure a party is selected
+        print("Received form data:", request.POST)
+
         party_id = request.POST.get('party')
         if not party_id:
-            parties = Parties.objects.all()  # Fetch all parties for dropdown
-            items = Item.objects.all()  # Fetch all items for dropdown
-            return render(request, 'create_bill.html', {'error': 'Please select a party.', 'parties': parties, 'items': items})
-
-        party = get_object_or_404(Parties, id=party_id)
-
-        # Create a new Bill entry with total_amount initialized to 0
-        bill = Bill.objects.create(party=party, total_amount=0)
-
-        # Fetch the selected items and their quantities from the form
-        items = request.POST.getlist('item')  # List of item IDs
-        quantities = request.POST.getlist('quantities')  # List of corresponding quantities
-
-        if not items or not quantities or len(items) != len(quantities):
             parties = Parties.objects.all()
             items = Item.objects.all()
-            return render(request, 'create_bill.html', {'error': 'Please select items and quantities.', 'parties': parties, 'items': items})
+            return render(request, 'create_bill.html', {
+                'error': 'Please select a party.',
+                'parties': parties,
+                'items': items
+            })
 
-        total_amount = 0  # Initialize total amount
+        party = get_object_or_404(Parties, id=party_id)
+        print("Selected party:", party)
 
-        # Loop through selected items and quantities to create BillItem entries
-        for item_id, quantity in zip(items, quantities):
-            item = get_object_or_404(Item, id=item_id)  # Fetch the item
+        bill = Bill.objects.create(party=party, total_amount=0, total_tax=0, total_discount=0)
+
+        # Retrieve hidden items and convert to list of integers
+        hidden_items = request.POST.get('hidden_items', '')
+        item_ids = [int(item_id) for item_id in hidden_items.split(',') if item_id.isdigit()]
+
+        quantities = request.POST.getlist('quantities')
+
+        # Combine item IDs with their respective quantities
+        items_and_quantities = [(item_id, quantity) for item_id, quantity in zip(item_ids, quantities) if
+                                item_id and quantity]
+
+        print("Filtered items and quantities:", items_and_quantities)
+
+        if not items_and_quantities:
+            parties = Parties.objects.all()
+            items = Item.objects.all()
+            messages.error(request, 'Please select items and quantities.')  # Use messages framework
+
+            return render(request, 'create_bill.html', {
+                'error': 'Please select items and quantities.',
+                'parties': parties,
+                'items': items
+            })
+
+        total_amount = 0
+        total_tax = 0
+        total_discount = 0
+
+        # Process each valid item and its quantity
+        for item_id, quantity in items_and_quantities:
+            item = get_object_or_404(Item, id=item_id)  # Ensure item_id is an integer
             quantity = int(quantity)
 
-            # Calculate price with discount and tax
-            price_with_discount = item.price - (item.price * item.discount_rate / 100)
-            price_with_tax = price_with_discount + (price_with_discount * item.tax_rate / 100)
-            subtotal = price_with_tax * quantity
-            total_amount += subtotal  # Add to the total amount
+            if item.stock_level < quantity:
+                messages.error(request, f'Item "{item.name}" is out of stock, please select another item.')
+                # Rollback: delete bill and redirect to the form page
+                bill.delete()
+                return redirect('check_low_stock')  # Assuming 'create_bill' is the URL name for the bill creation page
+            discount_amount = item.price * item.discount_rate / 100
+            discounted_price = item.price - discount_amount  # Price after discount
+            tax_amount = discounted_price * item.tax_rate / 100
 
-            # Log the item details for debugging
+            print(f"Item: {item.name}, Price: {item.price}, Discount: {discount_amount}, Tax: {tax_amount}")
 
-            # Create a BillItem entry for each selected item
-            BillItem.objects.create(bill=bill, item=item, quantity=quantity, price=subtotal)
+            subtotal = (discounted_price + tax_amount) * quantity
+            total_amount += subtotal
+            total_tax += tax_amount * quantity
+            total_discount += discount_amount * quantity
+            BillItem.objects.create(bill=bill, item=item, quantity=quantity)
+            # ... your existing sale logic ...
+            item.stock_level -= quantity  # Decrease stock level
+            item.save()
 
-        # Update the Bill with the calculated total amount
+
+
+        print("Total Amount:", total_amount)
+        print("Total Tax:", total_tax)
+        print("Total Discount:", total_discount)
+
+        # Update the bill totals
         bill.total_amount = total_amount
+        bill.total_tax = total_tax
+        bill.total_discount = total_discount
         bill.save()
 
-        logger.info(f"Bill created with total amount: {bill.total_amount}")
+        return redirect(reverse('view_bill', kwargs={'bill_id': bill.id}))
 
-        # Redirect to view the generated bill
-        return redirect('view_bill', id=bill.id)
-
-    # If GET request, fetch all parties and items to populate the form
+    # GET request handling
     parties = Parties.objects.all()
     items = Item.objects.all()
     return render(request, 'create_bill.html', {'parties': parties, 'items': items})
 
 
+
+
 def view_bill(request, bill_id):
     bill = get_object_or_404(Bill, id=bill_id)
-    return render(request, 'bill_pdf_template.html', {'bill': bill})
+    bill_items = BillItem.objects.filter(bill=bill)  # Get all items for the bill
 
+    context = {
+        'bill': bill,
+        'bill_items': bill_items,
+    }
+    return render(request, 'bill_pdf_template.html', context)
 
-
-
-# def create_bill(request):
-#     if request.method == 'POST':
-#         party_id = request.POST.get('parties')  # Get the selected party
-#         items = request.POST.getlist('item')  # Get the selected items
-#         quantities = request.POST.getlist('quantities')  # Get the quantities
-#
-#         # Check if the party ID is valid
-#         if not party_id:
-#             return render(request, 'create_bill.html', {'error': 'Party must be selected!'})
-#
-#         # Retrieve the party object and check if it's valid
-#         try:
-#             party = Parties.objects.get(id=party_id)
-#         except Parties.DoesNotExist:
-#             return render(request, 'create_bill.html', {'error': 'Selected party not found!'})
-#
-#         # Calculate totals
-#         total_amount = 0.0
-#         total_tax = 0.0
-#         total_discount = 0.0
-#
-#         # Validate items
-#         if not items or not quantities:
-#             return render(request, 'create_bill.html', {'error': 'Items and quantities must be selected!'})
-#
-#         # Loop through the items and validate them
-#         for idx, item_id in enumerate(items):
-#             if not item_id:  # If item ID is empty, skip
-#                 continue
-#
-#             try:
-#                 item = Item.objects.get(id=item_id)
-#             except Item.DoesNotExist:
-#                 return render(request, 'create_bill.html', {'error': f'Item with ID {item_id} not found!'})
-#
-#             quantity = quantities[idx] if quantities else 1
-#             if not quantity.isdigit() or int(quantity) < 1:
-#                 return render(request, 'create_bill.html', {'error': 'Invalid quantity for item!'})
-#
-#             quantity = int(quantity)
-#             tax_rate = item.tax_rate
-#             discount_rate = item.discount_rate
-#
-#             # Apply discount and tax to the item
-#             discounted_price = item.price * (1 - discount_rate / 100)
-#             price_with_tax = discounted_price * (1 + tax_rate / 100)
-#
-#             # Update total amounts
-#             subtotal = price_with_tax * quantity
-#             total_amount += subtotal
-#             total_tax += (discounted_price * quantity * tax_rate / 100)
-#             total_discount += (item.price * discount_rate / 100 * quantity)
-#
-#         # Create the bill
-#         bill = Bill.objects.create(
-#             party=party,
-#             total_amount=total_amount,
-#             total_tax=total_tax,
-#             total_discount=total_discount
-#         )
-#
-#         # Add items to the bill
-#         for idx, item_id in enumerate(items):
-#             if not item_id:  # Skip if no item ID
-#                 continue
-#
-#             item = Item.objects.get(id=item_id)
-#             quantity = int(quantities[idx])
-#
-#             BillItem.objects.create(
-#                 bill=bill,
-#                 item=item,
-#                 quantity=quantity
-#             )
-#
-#         return redirect('bill_success')  # Redirect to a success page or bill view
-#     else:
-#         # Fetch parties and items for the form
-#         parties = Parties.objects.all()
-#         items = Item.objects.all()
-#
-#         return render(request, 'create_bill.html', {'parties': parties, 'items': items})
 
 
 #  Generate and download PDF
-def download_bill_pdf(request, bill_id):
+def download_bill_pdf(request,bill_id):
     bill = Bill.objects.get(id=bill_id)
     bill_items = BillItem.objects.filter(bill=bill)
 
@@ -385,21 +384,132 @@ def download_bill_pdf(request, bill_id):
     if pisa_status.err:
         return HttpResponse('Error creating PDF', status=400)
 
-    return response
+def create_purchase(request):
+    if request.method == "POST":
+        print("Received form data:", request.POST)
+
+        party_id = request.POST.get('party')
+        if not party_id:
+            parties = Parties.objects.all()
+            items = Item.objects.all()
+            return render(request, 'create_purchase.html', {
+                'error': 'Please select a party.',
+                'parties': parties,
+                'items': items
+            })
+
+        party = get_object_or_404(Parties, id=party_id)
+        print("Selected party:", party)
+
+        purchase = Purchase.objects.create(party=party, total_amount=0, total_tax=0, total_discount=0)
+
+        # Retrieve hidden items and convert to list of integers
+        hidden_items = request.POST.get('hidden_items', '')
+        item_ids = [int(item_id) for item_id in hidden_items.split(',') if item_id.isdigit()]
+
+        quantities = request.POST.getlist('quantities')
+
+        # Combine item IDs with their respective quantities
+        items_and_quantities = [(item_id, quantity) for item_id, quantity in zip(item_ids, quantities) if
+                                item_id and quantity]
+
+        print("Filtered items and quantities:", items_and_quantities)
+
+        if not items_and_quantities:
+            parties = Parties.objects.all()
+            items = Item.objects.all()
+            messages.error(request, 'Please select items and quantities.')  # Use messages framework
+
+            return render(request, 'create_purchase.html', {
+                'error': 'Please select items and quantities.',
+                'parties': parties,
+                'items': items
+            })
+
+        total_amount = 0
+        total_tax = 0
+        total_discount = 0
+
+        # Process each valid item and its quantity
+        for item_id, quantity in items_and_quantities:
+            item = get_object_or_404(Item, id=item_id)  # Ensure item_id is an integer
+            quantity = int(quantity)
+
+            if item.stock_level < quantity:
+                continue  # Skip this item and move to the next one
+
+            discount_amount = item.price * item.discount_rate / 100
+            discounted_price = item.price - discount_amount  # Price after discount
+            tax_amount = discounted_price * item.tax_rate / 100
+
+            print(f"Item: {item.name}, Price: {item.price}, Discount: {discount_amount}, Tax: {tax_amount}")
+
+            subtotal = (discounted_price + tax_amount) * quantity
+            total_amount += subtotal
+            total_tax += tax_amount * quantity
+            total_discount += discount_amount * quantity
+            PurchaseItem.objects.create(purchase=purchase, item=item, quantity=quantity)
+            # ... your existing sale logic ...
+            item.stock_level -= quantity  # Decrease stock level
+            item.save()
+
+
+
+        print("Total Amount:", total_amount)
+        print("Total Tax:", total_tax)
+        print("Total Discount:", total_discount)
+
+        # Update the bill totals
+        purchase.total_amount = total_amount
+        purchase.total_tax = total_tax
+        purchase.total_discount = total_discount
+        purchase.save()
+
+        return redirect(reverse('view_purchase', kwargs={'purchase_id': purchase.id}))
+
+    # GET request handling
+    parties = Parties.objects.all()
+    items = Item.objects.all()
+    return render(request, 'create_purchase.html', {'parties': parties, 'items': items})
+
+# def view_purchase(request, purchase_id):
+#         purchase = get_object_or_404(Purchase, id=purchase_id)
+#         purchase_items = PurchaseItem.objects.filter(purchase=purchase)  # Get all items for the bill
+#
+#         context = {
+#             'purchase': purchase,
+#             'purchase_items': purchase_items,
+#         }
+#         return render(request, 'create_purchase.html', context)
+
+
+
 def purchase_list(request):
     purchases = Purchase.objects.all()
     return render(request, 'purchase_list.html', {'purchases': purchases})
 
-def add_purchase(request):
-    if request.method == 'POST':
-        form = PurchaseForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('purchase_list')  # Redirect to a purchase list or another view after saving
-    else:
-        form = PurchaseForm()
 
-    return render(request, 'add_purchase.html', {'form': form})
+
+
+def download_purchase_pdf(request, purchase_id):
+    purchase = get_object_or_404(Purchase, id=purchase_id)
+    purchase_items = PurchaseItem.objects.filter(purchase=purchase)
+
+    template_path = 'purchase_pdf_template.html'  # Make sure you have this template created
+    context = {'purchase': purchase, 'purchase_items': purchase_items}
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="purchase_{purchase_id}.pdf"'
+
+    template = get_template(template_path)
+    html = template.render(context)
+
+    # Generate PDF
+    pisa_status = pisa.CreatePDF(html, dest=response)
+    if pisa_status.err:
+        return HttpResponse('Error creating PDF', status=400)
+
+    return response
 
 def update_purchase(request, pk):
     purchase = get_object_or_404(Purchase, pk=pk)
@@ -421,59 +531,113 @@ def delete_purchase(request, pk):
 
     return render(request, 'delete_purchase.html', {'purchase': purchase})
 
-def purchase_report(request):
-    # Query sales data and aggregate by date or other dimensions
-    purchase = Bill.objects.all()
-
-    # Sum of total amount, tax, and discounts
-    total_purchase = purchase.aggregate(
-        total_amount=Sum('total_amount'),
-        total_tax=Sum('total_tax'),
-        total_discount=Sum('total_discount')
-    )
-
-    context = {
-        'purchase': purchase,
-        'total_purchase': total_purchase,
-    }
-
-    return render(request, 'purchase_report.html', context)
-
-
 
 
 def sales_report(request):
-    # Query sales data and aggregate by date or other dimensions
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
+    # Initialize sales queryset
     sales = Bill.objects.all()
 
-    # Sum of total amount, tax, and discounts
-    total_sales = sales.aggregate(
-        total_amount=Sum('total_amount'),
-        total_tax=Sum('total_tax'),
-        total_discount=Sum('total_discount')
-    )
+    if start_date and end_date:
+        try:
+            # Convert to datetime objects
+            start_date = datetime.fromisoformat(start_date)
+            end_date = datetime.fromisoformat(end_date)
+
+            # Adjust the end date to include the whole day
+            end_date = timezone.datetime.combine(end_date, timezone.datetime.max.time())
+
+            # Filter based on the date range
+            sales = sales.filter(created_at__range=[start_date, end_date])
+
+            # Debug output to check the filtered sales
+            print(f"Filtered Sales: {sales}")
+
+        except ValueError:
+            # Handle the case where the date format is incorrect
+            sales = sales.none()  # No sales if date format is invalid
+            print("Invalid date format received.")
+
+    # Calculate total sales
+    total_sales = sum(sale.total_amount for sale in sales)
 
     context = {
         'sales': sales,
+        'start_date': start_date,
+        'end_date': end_date,
         'total_sales': total_sales,
     }
-
     return render(request, 'sales_report.html', context)
 
 
+def purchase_report(request):
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
+    # Initialize sales queryset
+    purchases = Purchase.objects.all()
+
+    if start_date and end_date:
+        try:
+            # Convert to datetime objects
+            start_date = datetime.fromisoformat(start_date)
+            end_date = datetime.fromisoformat(end_date)
+
+            # Adjust the end date to include the whole day
+            end_date = timezone.datetime.combine(end_date, timezone.datetime.max.time())
+
+            # Filter based on the date range
+            purchase = purchases.filter(created_at__range=[start_date, end_date])
+
+            # Debug output to check the filtered sales
+            print(f"Filtered purchases: {purchase}")
+
+        except ValueError:
+            # Handle the case where the date format is incorrect
+            purchase = purchase.none()  # No sales if date format is invalid
+            print("Invalid date format received.")
+
+    # Calculate total sales
+    total_purchase = sum(purchase.total_amount for purchase in purchases)
+
+    context = {
+        'purchases': purchases,
+        'start_date': start_date,
+        'end_date': end_date,
+        'total_purchase': total_purchase,
+    }
+    return render(request, 'purchase_report.html', context)
 
 
 def download_sales_report(request):
+    # Create the HttpResponse object with the appropriate CSV header
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="sales_report.csv"'
 
+    # Create a CSV writer
     writer = csv.writer(response)
     writer.writerow(['Party', 'Total Amount', 'Total Tax', 'Total Discount', 'Date'])
 
+    # Fetch all sales records
     sales = Bill.objects.all()
 
     for sale in sales:
-        writer.writerow([sale.party.name, sale.total_amount, sale.total_tax, sale.total_discount, sale.created_at])
+        party_name = sale.party.name if sale.party else 'N/A'  # Handle cases where party might be None
+
+        # Calculate the total amount based on related BillItems
+        total_amount = sum(item.quantity * item.item.price for item in
+                           sale.bill_items.all())  # Adjust as per your price calculation logic
+        total_tax = sale.total_tax or 0  # Default to 0 if None
+        total_discount = sale.total_discount or 0  # Default to 0 if None
+        created_at = sale.created_at.strftime('%Y-%m-%d %H:%M:%S') if sale.created_at else 'N/A'  # Format datetime
+
+        writer.writerow([party_name, total_amount, total_tax, total_discount, created_at])
+
+    return response
+
+
 #
 #     return response
 def report(request):
@@ -484,19 +648,35 @@ def sales_report_view(request):
     start_date = request.GET.get('start_date', None)
     end_date = request.GET.get('end_date', None)
 
-    if start_date and end_date:
-        start_date = datetime.strptime(start_date, '%Y-%m-%d')
-        end_date = datetime.strptime(end_date, '%Y-%m-%d')
-        total_sales = Bill.objects.filter(created_at__range=[start_date, end_date]).aggregate(total_sales=Sum('total_amount'))['total_sales'] or 0
-    else:
-        total_sales = Bill.objects.aggregate(total_sales=Sum('total_amount'))['total_sales'] or 0
+    bills = Bill.objects.all()  # Default to all bills if no filters applied
+
+    try:
+        if start_date and end_date:
+            # Parse the date strings
+            start_date = datetime.strptime(start_date, '%Y-%m-%d')
+            end_date = datetime.strptime(end_date, '%Y-%m-%d').replace(hour=23, minute=59, second=59)
+
+            # Filter bills within the date range (inclusive)
+            bills = Bill.objects.filter(created_at__range=[start_date, end_date])
+
+        # Calculate total sales
+        total_sales = bills.aggregate(total_sales=Sum('total_amount'))['total_sales'] or 0
+
+    except ValueError:
+        # Handle invalid date input gracefully
+        total_sales = 0
+        start_date = None
+        end_date = None
 
     context = {
         'total_sales': total_sales,
+        'bills': bills,  # Pass filtered bills to the context
         'start_date': start_date,
-        'end_date': end_date
+        'end_date': end_date,
     }
     return render(request, 'sales_report.html', context)
+
+
 
 def purchase_report_view(request):
     start_date = request.GET.get('start_date', None)
@@ -505,17 +685,19 @@ def purchase_report_view(request):
     if start_date and end_date:
         start_date = datetime.strptime(start_date, '%Y-%m-%d')
         end_date = datetime.strptime(end_date, '%Y-%m-%d')
-        total_purchases = Purchase.objects.filter(created_at__range=[start_date, end_date]).aggregate(total_purchases=Sum('total_amount'))['total_purchases'] or 0
+        purchases = Purchase.objects.filter(created_at__range=[start_date, end_date])
+        total_purchases = purchases.aggregate(total_purchases=Sum('total_amount'))['total_purchases'] or 0
     else:
-        total_purchases = Purchase.objects.aggregate(total_purchases=Sum('total_amount'))['total_purchases'] or 0
+        purchases = Purchase.objects.all()
+        total_purchases = purchases.aggregate(total_purchases=Sum('total_amount'))['total_purchases'] or 0
 
     context = {
         'total_purchases': total_purchases,
         'start_date': start_date,
-        'end_date': end_date
+        'end_date': end_date,
+        'purchases': purchases
     }
     return render(request, 'purchase_report.html', context)
-
 
 def search_party(request):
     query = request.GET.get('q', '')
@@ -538,3 +720,42 @@ def search_item(request):
 
     results = [{'id': item.id, 'name': item.name, 'price': item.price} for item in items]
     return JsonResponse({'results': results})
+
+
+def filter_parties(request):
+    search_term = request.GET.get('q', '')
+    parties = Parties.objects.filter(name__icontains=search_term).values('id', 'name')
+    return JsonResponse(list(parties), safe=False)
+
+def filter_items(request):
+    search_term = request.GET.get('q', '')
+    items = Item.objects.filter(name__icontains=search_term).values('id', 'name', 'price', 'tax_rate', 'discount_rate')
+    return JsonResponse(list(items), safe=False)
+
+def add_purchase(request):
+    if request.method == 'POST':
+        # Handle form data and save to the purchase and purchase_items tables
+        ...
+
+def check_low_stock(request):
+    low_stock_items = Item.objects.filter(stock_level__lt=F('low_stock_threshold'))
+    return render(request, 'low_stock_alert.html', {'low_stock_items': low_stock_items})
+
+
+def profit_loss_report(request):
+    # Fetch total sales and total purchases
+    total_sales = Bill.objects.aggregate(total=Sum('total_amount'))['total'] or 0
+    total_purchases = Purchase.objects.aggregate(total=Sum('total_amount'))['total'] or 0
+
+    profit = total_sales - total_purchases
+    loss = abs(profit) if profit < 0 else 0
+
+    context = {
+        'total_sales': total_sales,
+        'total_purchases': total_purchases,
+        'profit': profit if profit > 0 else 0,
+        'loss': loss,
+    }
+    return render(request, 'profit_loss_report.html', context)
+
+

@@ -1,34 +1,88 @@
-<!--<div class="chart-container" style="position: relative; height:40vh; width:80vw">-->
-<!--    <canvas id="myChart"></canvas>-->
-<!--</div>-->
-<!--<script>-->
-<!--    var ctx = document.getElementById('myChart').getContext('2d');-->
-<!--    var salesData = {{ sales_data|safe }};-->
-<!--    var months = {{ months|safe }};-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        #dashboard {
+            max-width: 500px;
+            margin: auto;
+        }
+        canvas {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="dashboard">
+        <h2>Sales and Purchases Report</h2>
+        <canvas id="salesPurchaseChart" width="250" height="250"></canvas>
+        <h2>Profit and Loss Report</h2>
+        <canvas id="profitLossChart" width="250" height="250"></canvas>
+    </div>
 
-<!--    var myChart = new Chart(ctx, {-->
-<!--        type: 'bar',-->
-<!--        data: {-->
-<!--            labels: months,-->
-<!--            datasets: [{-->
-<!--                label: 'Sales for 2024 (in USD)',-->
-<!--                data: salesData,-->
-<!--                backgroundColor: 'rgba(75, 192, 192, 0.2)',-->
-<!--                borderColor: 'rgba(75, 192, 192, 1)',-->
-<!--                borderWidth: 1-->
-<!--            }]-->
-<!--        },-->
-<!--        options: {-->
-<!--            scales: {-->
-<!--                y: {-->
-<!--                    beginAtZero: true-->
-<!--                }-->
-<!--            }-->
-<!--        }-->
-<!--    });-->
-<!--</script>-->
-<!--<h1>Welcome to the Home Page</h1>-->
-<!--<p>You are logged in!</p>-->
-<!--<a href="{% url 'logout' %}">Logout</a>-->
-<h2>Welcome to your dashboard, {{ user.username }}</h2>
-<a href="{% url 'logout' %}">Logout</a>
+    <script>
+        // Get data from Django context
+        const salesData = {{ sales_data|safe }};  // Use |safe to render JavaScript array
+        const purchaseData = {{ purchase_data|safe }};
+        const profitLossData = {{ profit_loss_data|safe }};
+        const labels = {{ labels|safe }};  // Ensure labels are available for the chart
+
+        // Create Pie Chart for Sales and Purchases
+        const totalSales = salesData.reduce((a, b) => a + parseFloat(b), 0);
+        const totalPurchases = purchaseData.reduce((a, b) => a + parseFloat(b), 0);
+
+        const ctxSalesPurchase = document.getElementById('salesPurchaseChart').getContext('2d');
+        const salesPurchaseChart = new Chart(ctxSalesPurchase, {
+            type: 'pie',
+            data: {
+                labels: ['Total Sales', 'Total Purchases'],
+                datasets: [{
+                    label: 'Sales and Purchases',
+                    data: [totalSales, totalPurchases],
+                    backgroundColor: [
+                        'rgb(146, 187, 64)',
+                        'rgb(240, 90, 0)',
+                    ],
+                    borderColor: [
+                        'rgb(146, 187, 64)',
+                        'rgba(255, 99, 132, 1)',
+                    ],
+                    borderWidth: 1,
+                }]
+            },
+            options: {
+                responsive: true,
+            }
+        });
+
+        // Create Line Chart for Profit and Loss
+        const ctxProfitLoss = document.getElementById('profitLossChart').getContext('2d');
+        const profitLossChart = new Chart(ctxProfitLoss, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Profit/Loss',
+                    data: profitLossData,
+                    backgroundColor: 'rgb(92, 151, 255)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 2,
+                    fill: true,  // fill the area under the line
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

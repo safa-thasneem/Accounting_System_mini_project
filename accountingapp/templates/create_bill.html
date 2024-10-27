@@ -130,8 +130,8 @@
         <!-- Item Search Bar -->
         <label for="item-search">Select Items:</label>
         <input type="text" id="item-search" placeholder="Search for an item..." oninput="filterItems()">
-        <select id="item-dropdown" name="items" onchange="addItemToTable(this)">
-            <option value="">-- Select Item --</option>
+        <select id="item-select"  name="items" onchange="addItemToTable(this)">
+            <option value="" name="item">-- Select Item --</option>
             {% for item in items %}
             <option value="{{ item.id }}" data-price="{{ item.price }}" data-tax="{{ item.tax_rate }}" data-discount="{{ item.discount_rate }}">
                 {{ item.name }}
@@ -139,6 +139,7 @@
             {% endfor %}
         </select>
     </div>
+<input type="hidden" id="hidden-items" name="hidden_items" value="">
 
     <!-- Items Table -->
     <table id="items-table">
@@ -155,7 +156,7 @@
             </tr>
         </thead>
         <tbody>
-            <!-- Dynamic rows will be added here -->
+
         </tbody>
     </table>
 
@@ -167,87 +168,89 @@
 
     <!-- Save and Print Buttons -->
     <button type="submit">Save Bill</button>
-    <button type="button" onclick="window.print()">Print</button>
-
-
 
 </form>
 
 <script>
+
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('Script loaded');
+        });
+
     // Add item to table
-    function addItemToTable(selectElement) {
-        let itemId = selectElement.value;
+   let selectedItemIds = []; // To store selected item IDs
+function addItemToTable(selectElement) {
+    let itemId = selectElement.value;
+
+    if (itemId && !document.getElementById('row-item-' + itemId)) {
+        // Fetch item details
         let itemText = selectElement.options[selectElement.selectedIndex].text;
         let itemPrice = parseFloat(selectElement.options[selectElement.selectedIndex].getAttribute("data-price"));
         let itemTax = parseFloat(selectElement.options[selectElement.selectedIndex].getAttribute("data-tax"));
         let itemDiscount = parseFloat(selectElement.options[selectElement.selectedIndex].getAttribute("data-discount"));
 
-        if (itemId && !document.getElementById('row-item-' + itemId)) {
-            let table = document.getElementById("items-table").getElementsByTagName('tbody')[0];
-            let rowCount = table.rows.length;
+        let table = document.getElementById("items-table").getElementsByTagName('tbody')[0];
+        let rowCount = table.rows.length;
 
-            // Create new row
-            let row = table.insertRow(rowCount);
-            row.setAttribute('id', 'row-item-' + itemId);
+        let row = table.insertRow(rowCount);
+        row.setAttribute('id', 'row-item-' + itemId);
 
-            // Add cells
-            row.insertCell(0).textContent = rowCount + 1;
-            row.insertCell(1).textContent = itemText;
+        // Add cells
+        row.insertCell(0).textContent = rowCount + 1;
+        row.insertCell(1).textContent = itemText;
 
-            // Quantity input
-            let quantityCell = row.insertCell(2);
-            let input = document.createElement("input");
-            input.type = "number";
-            input.name = "quantities";
-            input.value = 1;
-            input.min = 1;
-            input.onchange = function() {
-                updateSubtotal(row, itemPrice, itemTax, itemDiscount); // Update subtotal on quantity change
-            };
-            quantityCell.appendChild(input);
+        let quantityCell = row.insertCell(2);
+        let input = document.createElement("input");
+        input.type = "number";
+        input.name = "quantities";
+        input.value = 1;
+        input.min = 1;
+        input.onchange = function() {
+            updateSubtotal(row, itemPrice, itemTax, itemDiscount);
+        };
+        quantityCell.appendChild(input);
 
-            // Price cell (will display item price)
-            row.insertCell(3).textContent = itemPrice.toFixed(2);
+        row.insertCell(3).textContent = itemPrice.toFixed(2);
+        row.insertCell(4).textContent = itemTax ? itemTax.toFixed(2) : "0.00";
+        row.insertCell(5).textContent = itemDiscount ? itemDiscount.toFixed(2) : "0.00";
 
-            // Tax and Discount cells
-            row.insertCell(4).textContent = itemTax ? itemTax.toFixed(2) : "0.00";
-            row.insertCell(5).textContent = itemDiscount ? itemDiscount.toFixed(2) : "0.00";
+        let subtotalCell = row.insertCell(6);
+        let subtotal = calculateSubtotal(itemPrice, 1, itemTax, itemDiscount);
+        subtotalCell.textContent = subtotal.toFixed(2);
 
-            // Subtotal cell (will update on quantity change)
-            let subtotalCell = row.insertCell(6);
-            let subtotal = calculateSubtotal(itemPrice, 1, itemTax, itemDiscount);
-            subtotalCell.textContent = subtotal.toFixed(2);
+        let removeCell = row.insertCell(7);
+        let removeBtn = document.createElement("button");
+        removeBtn.type = "button";
+        removeBtn.textContent = "Remove";
+        removeBtn.onclick = function() {
+            removeItemFromTable(row);
+        };
+        removeCell.appendChild(removeBtn);
 
-            // Remove button
-            let removeCell = row.insertCell(7);
-            let removeBtn = document.createElement("button");
-            removeBtn.type = "button";
-            removeBtn.textContent = "Remove";
-            removeBtn.onclick = function() {
-                removeItemFromTable(row);
-            };
-            removeCell.appendChild(removeBtn);
-
-            // Update total
-            updateTotal();
-        }
-
-        // Reset the dropdown
-        selectElement.selectedIndex = 0;
+        selectedItemIds.push(itemId);
+        console.log('Selected Item IDs:', selectedItemIds); // Debugging line
+        updateTotal();
+        updateHiddenItemsInput(); // Ensure this is called here
     }
+
+    selectElement.selectedIndex = 0;
+}
+
+
+
+   function updateHiddenItems() {
+    let hiddenItems = document.getElementById("hidden-items");
+    hiddenItems.value = selectedItemIds.join(',');
+    console.log('Updated hidden items:', hiddenItems.value); // Debugging line to check values
+
+    }
+
 
     // Calculate subtotal for each row
     function calculateSubtotal(price, quantity, tax, discount) {
-        // Apply discount first
         let discountedPrice = price * (1 - (discount / 100));  // Apply discount
-
-        // Apply tax to discounted price
-        let totalWithTax = discountedPrice * (1 + (tax / 100));  // Apply tax to the discounted price
-
-        // Total price after discount and tax
-        let total = totalWithTax * quantity;  // Multiply by quantity
-
-        return total;
+        let totalWithTax = discountedPrice * (1 + (tax / 100));  // Apply tax
+        return totalWithTax * quantity;  // Multiply by quantity
     }
 
     // Update subtotal for a row
@@ -264,23 +267,52 @@
 
     // Remove item from table
     function removeItemFromTable(row) {
-        row.parentNode.removeChild(row);
-
-        // Update total
-        updateTotal();
+        let itemId = row.getAttribute('id').split('-')[2];  // Get item ID from row ID
+        selectedItemIds = selectedItemIds.filter(id => id !== itemId);  // Remove item ID from selected items
+        row.parentNode.removeChild(row);  // Remove the row
+        updateTotal();  // Update total
+        updateHiddenItemsInput();  // Update hidden input
     }
+function updateHiddenItemsInput() {
+    let hiddenItems = document.getElementById("hidden-items");
+    hiddenItems.value = selectedItemIds.join(','); // Update the hidden input with selected item IDs
+    console.log('Updated hidden items:', hiddenItems.value); // Debugging line to check values
+}
+
 
     // Update the total amount
     function updateTotal() {
-        let totalAmount = 0;
-        let rows = document.getElementById("items-table").getElementsByTagName('tbody')[0].rows;
-
-        for (let i = 0; i < rows.length; i++) {
-            totalAmount += parseFloat(rows[i].cells[6].textContent);  // Add subtotal of each row
+        let total = 0;
+        let table = document.getElementById("items-table").getElementsByTagName('tbody')[0];
+        for (let row of table.rows) {
+            total += parseFloat(row.getElementsByTagName('td')[6].textContent); // Add subtotal of each row
         }
-
-        // Update total amount display
-        document.getElementById("total-amount").textContent = totalAmount.toFixed(2);
+        document.getElementById('total-amount').textContent = total.toFixed(2); // Update total amount
     }
+
+    // Filter parties
+    function filterParties() {
+        let input = document.getElementById("party");
+        let filter = input.value.toLowerCase();
+        let dropdown = document.getElementById("party-dropdown");
+        for (let i = 1; i < dropdown.options.length; i++) {
+            let option = dropdown.options[i];
+            option.style.display = option.text.toLowerCase().includes(filter) ? "" : "none"; // Show or hide options
+        }
+    }
+
+    // Filter items
+    function filterItems() {
+        let input = document.getElementById("item-search");
+        let filter = input.value.toLowerCase();
+        let dropdown = document.getElementById("item-select");
+        for (let i = 1; i < dropdown.options.length; i++) {
+            let option = dropdown.options[i];
+            option.style.display = option.text.toLowerCase().includes(filter) ? "" : "none"; // Show or hide options
+        }
+    }
+
 </script>
+
 </body>
+</html>

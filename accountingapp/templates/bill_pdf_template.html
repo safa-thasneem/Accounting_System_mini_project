@@ -6,55 +6,117 @@
     <title>Bill PDF</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
+            font-family: 'Arial', sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background-color: #fff;
+            padding: 15px;
+            border: 1px solid #ddd;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         h1 {
             text-align: center;
+            font-size: 22px;
+            color: #007bff;
+            margin-bottom: 20px;
+        }
+        h2 {
+            font-size: 18px;
+            margin-top: 15px;
+            color: #333;
         }
         .bill-details, .item-details {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
         }
-        .bill-details td, .item-details td, .item-details th {
+        .bill-details td, .item-details th, .item-details td {
             border: 1px solid #ddd;
-            padding: 8px;
-        }
-        .bill-details tr:nth-child(even), .item-details tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-        .bill-details tr:hover, .item-details tr:hover {
-            background-color: #ddd;
-        }
-        .bill-details td, .item-details th {
+            padding: 10px;
             text-align: left;
         }
-        .total {
+        .bill-details td {
+            background-color: #f7f7f7;
+        }
+        .item-details th {
+            background-color: #007bff;
+            color: #fff;
+        }
+        .item-details td {
+            text-align: center;
+        }
+        .summary-table {
+            width: 100%;
+            margin-top: 10px;
+            border-top: 2px solid #007bff;
+        }
+        .summary-table td {
+            padding: 10px;
             text-align: right;
         }
-        .header {
-            margin-bottom: 30px;
+        .summary-table td.label {
+            font-weight: bold;
+            text-align: left;
+        }
+        .summary-table td.amount {
+            font-weight: bold;
+            color: #007bff;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 15px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 13px;
+            color: #777;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Bill Summary</h1>
-        <p><strong>Bill ID:</strong> {{ bill.id }}</p>
-        <p><strong>Party:</strong> {{ bill.party.name }}</p>
-        <p><strong>Date:</strong> {{ bill.created_at|date:"d/m/Y" }}</p>
-    </div>
+        <a href="{% url 'dashboard' %}">home</a>
 
+
+<div class="container">
+    <!-- Bill Header -->
+    <h1>Invoice</h1>
+
+    <!-- Bill Info Section -->
+    <h2>Bill Details</h2>
+    <table class="bill-details">
+        <tr>
+            <td><strong>Bill ID:</strong> {{ bill.id }}</td>
+            <td><strong>Party Name:</strong> {{ bill.party.name }}</td>
+            <td><strong>Date:</strong> {{ bill.created_at|date:"d/m/Y" }}</td>
+        </tr>
+    </table>
+
+    <!-- Item Details Section -->
+    <h2>Itemized Details</h2>
     <table class="item-details">
         <thead>
             <tr>
-                <th>#</th>
-                <th>Item</th>
+                <th>No.</th>
+                <th>Item Name</th>
                 <th>Quantity</th>
-                <th>Price</th>
-                <th>Tax</th>
-                <th>Discount</th>
+                <th>Unit Price</th>
+                <th>Tax (%)</th>
+                <th>Discount (%)</th>
                 <th>Total</th>
             </tr>
         </thead>
@@ -64,33 +126,47 @@
                 <td>{{ forloop.counter }}</td>
                 <td>{{ item.item.name }}</td>
                 <td>{{ item.quantity }}</td>
-                <td>{{ item.item.price }}</td>
+                <td>{{ item.item.price|floatformat:2 }}</td>
                 <td>{{ item.item.tax_rate }}%</td>
                 <td>{{ item.item.discount_rate }}%</td>
-                <td>{{ item.item.price|floatformat:2 }}</td>
+                <td>{{ bill.total_amount }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 
-    <table class="bill-details">
+    <!-- Summary Section -->
+    <table class="summary-table">
         <tr>
-            <td class="total"><strong>Subtotal:</strong></td>
-            <td>{{ bill.total_amount|floatformat:2 }}</td>
+            <td class="label">Subtotal:</td>
+            <td class="amount">{{ bill.total_amount|floatformat:2 }}</td>
         </tr>
         <tr>
-            <td class="total"><strong>Total Tax:</strong></td>
-            <td>{{ bill.total_tax|floatformat:2 }}</td>
+            <td class="label">Total Tax:</td>
+            <td class="amount">{{ bill.total_tax|floatformat:2 }}</td>
         </tr>
         <tr>
-            <td class="total"><strong>Total Discount:</strong></td>
-            <td>{{ bill.total_discount|floatformat:2 }}</td>
+            <td class="label">Total Discount:</td>
+            <td class="amount">{{ bill.total_discount|floatformat:2 }}</td>
         </tr>
         <tr>
-            <td class="total"><strong>Total Amount:</strong></td>
-            <td>{{ bill.total_amount|floatformat:2 }}</td>
+            <td class="label">Grand Total:</td>
+            <td class="amount">{{ bill.total_amount|floatformat:2 }}</td>
         </tr>
     </table>
+
+    <!-- Buttons -->
+    <div style="text-align: center;">
+        <button type="button" onclick="window.print()">Print Bill</button>
+        <a href="{% url 'download_bill_pdf' bill.id %}">
+            <button type="button">Download PDF</button>
+        </a>
+    </div>
+</div>
+
+<footer>
+    <p>Thank you for your business!</p>
+</footer>
 
 </body>
 </html>

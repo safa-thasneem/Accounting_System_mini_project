@@ -9,151 +9,187 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
-            background-color: #f8f9fa;
-            font-family: Arial, sans-serif;
+            background-color: #eef2f3; /* Light background for contrast */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden; /* Prevent horizontal scrolling */
+        }
+
+        .wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: #7f8c8d; /* Dark sidebar */
+            padding-top: 20px;
+            position: fixed;
+            height: 100%;
+            transition: transform 0.3s ease;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2); /* Shadow for depth */
+        }
+
+        .sidebar.hide {
+            transform: translateX(-100%);
+        }
+
+        .sidebar .nav-link {
+            color: #ffffff; /* White text */
+            padding: 15px 20px;
+            display: flex; /* Flexbox for aligning icons */
+            align-items: center; /* Center items vertically */
+            font-size: 1.1rem;
+            transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transition */
+        }
+
+        .sidebar .nav-link i {
+            margin-right: 10px; /* Space between icon and text */
+        }
+
+        .sidebar .nav-link:hover {
+            background-color: #495057; /* Slightly lighter on hover */
+            color: #f8f9fa; /* Change text color on hover */
+        }
+
+        .sidebar .active {
+            font-weight: bold;
+            background-color: #007bff; /* Highlight for active link */
         }
 
         .content {
-            text-align: center;
-            margin: 40px 0;
+            margin-left: 250px; /* Default margin for the sidebar */
+            padding: 40px;
+            width: calc(100% - 250px); /* Adjust content width accordingly */
+            transition: margin-left 0.3s ease;
         }
 
-        h1 {
+        .content.hided {
+            margin-left: 0; /* Adjust margin when sidebar is hidden */
+            width: 100%; /* Full width when sidebar is hidden */
+        }
+
+        .content h1 {
             font-size: 2.5rem;
             color: #343a40;
         }
 
-        h2 {
+        .content h2 {
             font-size: 1.5rem;
             margin-top: 20px;
             color: #6c757d;
         }
 
-        p {
+        .content p {
             font-size: 1.1rem;
             color: #495057;
             margin-bottom: 30px;
         }
 
-        .navbar {
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .navbar .nav-link {
-            font-size: 1.1rem;
-            transition: color 0.3s ease;
-        }
-
-        .navbar .nav-link:hover {
-            color: #007bff;
-        }
-
-        .navbar .active {
-            font-weight: bold;
-            color: #007bff !important;
-        }
-
         footer {
-            background-color: #343a40;
-            color: white;
-            padding: 20px 0;
-            position: relative;
-            bottom: 0;
-            width: 100%;
+            background-color: #f8f9fa; /* Light footer */
+            color: #343a40; /* Dark text for contrast */
+            padding: 8px 0;
             text-align: center;
+            width: calc(100% - 250px); /* Adjust footer width accordingly */
+            margin-left: 250px; /* Default margin for the sidebar */
+            position: fixed; /* Fixed footer */
+            bottom: 0; /* Stick to the bottom */
+            box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
         }
 
-        footer span {
-            font-size: 0.9rem;
+        footer.hided {
+            margin-left: 0; /* Adjust margin for footer when sidebar is hidden */
+            width: 100%; /* Full width when sidebar is hidden */
         }
 
-        .search-results {
-            margin-top: 20px;
-            text-align: left;
+        .menu-icon {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            cursor: pointer;
+            color: #343a40;
+            font-size: 1.5rem;
+            z-index: 1000; /* Ensure it appears above other elements */
         }
 
-        .search-results h3 {
-            font-size: 1.3rem;
-            color: #495057;
+        .logo {
+            width: 80%;
+            margin: 0 auto;
+            display: block;
+            padding-bottom: 20px;
         }
 
-        .search-results ul {
-            list-style: none;
-            padding-left: 0;
+        .project-name {
+            font-size: 1.3rem; /* Increase font size */
+            color: white; /* Highlight color (yellow) */
+            font-weight: bold; /* Bold font */
+            text-align: center; /* Center align */
+            padding: 15px 0; /* Add padding for spacing */
+            background-color: #1f618d; /* Background color for highlight */
+            border-radius: 5px; /* Rounded corners */
+            margin-top: 40px; /* Spacing below */
+
+            margin-bottom: 20px; /* Spacing below */
+            display: flex; /* Flexbox for icon alignment */
+            align-items: center; /* Center vertically */
+            justify-content: center; /* Center horizontally */
         }
 
-        .search-results li {
-            padding: 10px;
-            background-color: #f1f1f1;
-            border: 1px solid #ddd;
-            margin-bottom: 10px;
-            transition: background-color 0.3s ease;
-        }
-
-        .search-results li:hover {
-            background-color: #e9ecef;
+        .project-name i {
+            margin-left: 10px; /* Space between text and icon */
+            cursor: pointer; /* Pointer cursor for hover effect */
         }
     </style>
 </head>
 <body>
 
-    <!-- Navigation bar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="{% url 'home' %}">Accounting System</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ml-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'category_list' %}">Category</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'item_list' %}">Item</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'party_list' %}">Parties</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'create_bill' %}">Billing</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'add_purchase' %}">Purchase</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'report' %}">Reports</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'logout' %}">Logout</a>
-                </li>
-            </ul>
+    <div class="wrapper">
+        <!-- Hamburger Menu Icon -->
+        <div class="menu-icon" onclick="toggleSidebar()">
+            <i class="fas fa-bars"></i>
         </div>
-    </nav>
 
-    <div class="container">
-        <div class="content">
+        <!-- Sidebar -->
+        <nav class="sidebar" id="sidebar">
+            <div class="project-name">
+                Accounting System
+            </div>
+            <a class="nav-link" href="{% url 'dashboard' %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            <a class="nav-link" href="{% url 'category_list' %}"><i class="fas fa-th-list"></i> Category</a>
+            <a class="nav-link" href="{% url 'item_list' %}"><i class="fas fa-box"></i> Item</a>
+            <a class="nav-link" href="{% url 'party_list' %}"><i class="fas fa-users"></i> Parties</a>
+            <a class="nav-link" href="{% url 'create_bill' %}"><i class="fas fa-file-invoice"></i> Billing</a>
+            <a class="nav-link" href="{% url 'create_purchase' %}"><i class="fas fa-shopping-cart"></i> Purchase</a>
+            <a class="nav-link" href="{% url 'report' %}"><i class="fas fa-chart-line"></i> Reports</a>
+            <a class="nav-link" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="content" id="content">
             <h1>Welcome to the Accounting System</h1>
             <h2>About Us</h2>
             <p>Your one-stop solution for managing financial operations efficiently.</p>
-
-            <!-- Search Bar Placeholder -->
-<!--            -->
-            </div>
         </div>
     </div>
 
     <!-- Footer -->
-    <footer>
+    <footer id="footer">
         <span>© 2024 Accounting System. All rights reserved.</span>
     </footer>
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script src="{% static 'js/search.js' %}"></script>
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const content = document.getElementById('content');
+            const footer = document.getElementById('footer');
+
+            sidebar.classList.toggle('hide');
+            content.classList.toggle('hided');
+            footer.classList.toggle('hided');
+        }
+    </script>
 </body>
 </html>

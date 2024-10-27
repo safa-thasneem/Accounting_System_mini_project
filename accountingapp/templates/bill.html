@@ -1,3 +1,4 @@
+{% load math_filters %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -104,7 +105,8 @@
             </tr>
         </thead>
         <tbody>
-            {% for item in bill.billitem_set.all %}
+            {% with total_amount=0 %}
+            {% for item in bill_items %}
             <tr>
                 <td>{{ forloop.counter }}</td>
                 <td>{{ item.item.name }}</td>
@@ -113,20 +115,29 @@
                 <td>{{ item.item.tax_rate }}</td>
                 <td>{{ item.item.discount_rate }}</td>
                 <td>
-                    {% with price=item.item.price discount=item.item.discount_rate tax=item.item.tax_rate %}
-                    {% set discounted_price = price - (price * discount / 100) %}
-                    {{ (discounted_price + (discounted_price * tax / 100)) * item.quantity|floatformat:2 }}
+                    {% with discounted_price=item.item.price|floatformat:2 %}
+                    {% with discount_value=discounted_price|mul:item.item.discount_rate|floatformat:2 %}
+                    {% with price_after_discount=discounted_price|sub:discount_value %}
+                    {% with tax_value=price_after_discount|mul:item.item.tax_rate|floatformat:2 %}
+                    {% with subtotal=price_after_discount|add:tax_value %}
+                    {{ subtotal|mul:item.quantity|floatformat:2 }}
+                    {% with total_amount=total_amount|add:subtotal|floatformat:2 %}{% endwith %}
+                    {% endwith %}
+                    {% endwith %}
+                    {% endwith %}
+                    {% endwith %}
                     {% endwith %}
                 </td>
             </tr>
             {% endfor %}
+            {% endwith %}
         </tbody>
     </table>
 
     <!-- Total Amount -->
     <div class="total-container">
         <label>Total Amount:</label>
-        <span id="total-amount">{{ bill.total_amount }}</span>
+        <span id="total-amount">{{ total_amount|floatformat:2 }}</span>
     </div>
 
     <!-- Print Button -->

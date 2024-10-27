@@ -78,6 +78,12 @@ class PurchaseForm(forms.ModelForm):
         model = Purchase
         fields = ['party', 'total_amount', 'total_tax', 'total_discount']  # Add any other necessary fields
 
+class PurchaseItemForm(forms.ModelForm):
+    class Meta:
+        model = BillItem
+        fields = ['item', 'quantity']
+
+
 
 
 

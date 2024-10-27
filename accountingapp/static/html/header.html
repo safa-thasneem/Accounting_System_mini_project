@@ -1,0 +1,17 @@
+<!-- static/html/header.html -->
+{% load static %}
+<nav class="sidebar" id="sidebar">
+    <img src="{% static 'path/to/your/logo.png' %}" alt="Logo" class="logo"> <!-- Logo Placeholder -->
+    <div class="project-name">
+        Accounting System
+        <i class="fas fa-bars" onclick="toggleSidebar()"></i> <!-- Hamburger Icon -->
+    </div>
+    <a class="nav-link" href="{% url 'dashboard' %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    <a class="nav-link" href="{% url 'category_list' %}"><i class="fas fa-th-list"></i> Category</a>
+    <a class="nav-link" href="{% url 'item_list' %}"><i class="fas fa-box"></i> Item</a>
+    <a class="nav-link" href="{% url 'party_list' %}"><i class="fas fa-users"></i> Parties</a>
+    <a class="nav-link" href="{% url 'create_bill' %}"><i class="fas fa-file-invoice"></i> Billing</a>
+    <a class="nav-link" href="{% url 'create_purchase' %}"><i class="fas fa-shopping-cart"></i> Purchase</a>
+    <a class="nav-link" href="{% url 'report' %}"><i class="fas fa-chart-line"></i> Reports</a>
+    <a class="nav-link" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+</nav>
