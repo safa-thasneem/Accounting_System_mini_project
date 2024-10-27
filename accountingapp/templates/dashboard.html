@@ -1,0 +1,34 @@
+<!--<div class="chart-container" style="position: relative; height:40vh; width:80vw">-->
+<!--    <canvas id="myChart"></canvas>-->
+<!--</div>-->
+<!--<script>-->
+<!--    var ctx = document.getElementById('myChart').getContext('2d');-->
+<!--    var salesData = {{ sales_data|safe }};-->
+<!--    var months = {{ months|safe }};-->
+
+<!--    var myChart = new Chart(ctx, {-->
+<!--        type: 'bar',-->
+<!--        data: {-->
+<!--            labels: months,-->
+<!--            datasets: [{-->
+<!--                label: 'Sales for 2024 (in USD)',-->
+<!--                data: salesData,-->
+<!--                backgroundColor: 'rgba(75, 192, 192, 0.2)',-->
+<!--                borderColor: 'rgba(75, 192, 192, 1)',-->
+<!--                borderWidth: 1-->
+<!--            }]-->
+<!--        },-->
+<!--        options: {-->
+<!--            scales: {-->
+<!--                y: {-->
+<!--                    beginAtZero: true-->
+<!--                }-->
+<!--            }-->
+<!--        }-->
+<!--    });-->
+<!--</script>-->
+<!--<h1>Welcome to the Home Page</h1>-->
+<!--<p>You are logged in!</p>-->
+<!--<a href="{% url 'logout' %}">Logout</a>-->
+<h2>Welcome to your dashboard, {{ user.username }}</h2>
+<a href="{% url 'logout' %}">Logout</a>

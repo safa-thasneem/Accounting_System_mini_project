@@ -1,0 +1,120 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>List of Purchases</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 16px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2; /* Light gray for header */
+            color: #555;
+        }
+
+        tr:hover {
+            background-color: #f9f9f9; /* Light gray on row hover */
+        }
+
+        .actions a {
+            margin-right: 10px;
+            text-decoration: none;
+            color: #007BFF;
+        }
+
+        .actions a:hover {
+            text-decoration: underline;
+        }
+
+        .add-button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #4CAF50; /* Green */
+            color: white;
+            text-align: center;
+            border-radius: 5px;
+            text-decoration: none;
+            width: 200px;
+        }
+
+        .add-button:hover {
+            background-color: #45a049; /* Darker green */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>List of Purchases</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Party</th>
+                    <th>Total Amount</th>
+                    <th>Total Tax</th>
+                    <th>Total Discount</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for purchase in purchases %}
+                <tr>
+                    <td>{{ purchase.party.name }}</td>
+                    <td>{{ purchase.total_amount }}</td>
+                    <td>{{ purchase.total_tax }}</td>
+                    <td>{{ purchase.total_discount }}</td>
+                    <td class="actions">
+                        <a href="{% url 'update_purchase' purchase.id %}"><i class="fas fa-edit"></i> Edit</a> |
+                        <a href="{% url 'delete_purchase' purchase.id %}"><i class="fas fa-trash-alt"></i> Delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <a class="add-button" href="{% url 'add_purchase' %}">Add New Purchase</a>
+    </div>
+
+</body>
+</html>
+
+    </tbody>
+</table>
+<a href="{% url 'add_purchase' %}">Add New Purchase</a>

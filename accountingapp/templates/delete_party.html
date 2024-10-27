@@ -1,0 +1,91 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Party</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: #d9534f; /* Red color for delete title */
+            text-align: center;
+        }
+
+        p {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px; /* Space below the confirmation text */
+            font-size: 16px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column; /* Vertical alignment of form elements */
+            align-items: center; /* Center align form elements */
+        }
+
+        button {
+            padding: 10px 15px;
+            background-color: #d9534f; /* Red color for delete button */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #c9302c; /* Darker red on hover */
+        }
+
+        .back-link {
+            text-align: center; /* Centering the back link */
+            margin-top: 20px; /* Space above */
+        }
+
+        .back-link a {
+            text-decoration: none;
+            color: #007BFF; /* Blue color */
+            font-size: 14px;
+        }
+
+        .back-link a:hover {
+            text-decoration: underline; /* Underline on hover */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Delete Party</h2>
+        <p>Are you sure you want to delete "{{ party.name }}"?</p>
+        <form method="POST">
+            {% csrf_token %}
+            <button type="submit">Delete Party</button>
+        </form>
+
+        <div class="back-link">
+            <a href="{% url 'party_list' %}">Cancel</a>
+        </div>
+    </div>
+</body>
+</html>

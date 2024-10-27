@@ -1,0 +1,159 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accounting System</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
+        }
+
+        .content {
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #343a40;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            margin-top: 20px;
+            color: #6c757d;
+        }
+
+        p {
+            font-size: 1.1rem;
+            color: #495057;
+            margin-bottom: 30px;
+        }
+
+        .navbar {
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar .nav-link {
+            font-size: 1.1rem;
+            transition: color 0.3s ease;
+        }
+
+        .navbar .nav-link:hover {
+            color: #007bff;
+        }
+
+        .navbar .active {
+            font-weight: bold;
+            color: #007bff !important;
+        }
+
+        footer {
+            background-color: #343a40;
+            color: white;
+            padding: 20px 0;
+            position: relative;
+            bottom: 0;
+            width: 100%;
+            text-align: center;
+        }
+
+        footer span {
+            font-size: 0.9rem;
+        }
+
+        .search-results {
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .search-results h3 {
+            font-size: 1.3rem;
+            color: #495057;
+        }
+
+        .search-results ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .search-results li {
+            padding: 10px;
+            background-color: #f1f1f1;
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        .search-results li:hover {
+            background-color: #e9ecef;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation bar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="{% url 'home' %}">Accounting System</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'category_list' %}">Category</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'item_list' %}">Item</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'party_list' %}">Parties</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'create_bill' %}">Billing</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'add_purchase' %}">Purchase</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'report' %}">Reports</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="content">
+            <h1>Welcome to the Accounting System</h1>
+            <h2>About Us</h2>
+            <p>Your one-stop solution for managing financial operations efficiently.</p>
+
+            <!-- Search Bar Placeholder -->
+<!--            -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <span>© 2024 Accounting System. All rights reserved.</span>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="{% static 'js/search.js' %}"></script>
+</body>
+</html>

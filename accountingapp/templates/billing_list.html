@@ -1,0 +1,112 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billing List</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 16px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2; /* Light gray for header */
+            color: #555;
+        }
+
+        tr:hover {
+            background-color: #f9f9f9; /* Light gray on row hover */
+        }
+
+        .action-links a {
+            margin-right: 10px;
+            text-decoration: none;
+            color: #007BFF; /* Blue color for action links */
+            transition: color 0.3s;
+        }
+
+        .action-links a:hover {
+            color: #0056b3; /* Darker blue on hover */
+            text-decoration: underline;
+        }
+
+        .empty-message {
+            text-align: center;
+            color: #999;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Billing List</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Party</th>
+                    <th>Total Amount</th>
+                    <th>Total Tax</th>
+                    <th>Total Discount</th>
+                    <th>Created At</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for billing in billings %}
+                <tr>
+                    <td>{{ billing.party.name }}</td>
+                    <td>${{ billing.total_amount }}</td> <!-- Formatted with dollar sign -->
+                    <td>${{ billing.total_tax }}</td> <!-- Formatted with dollar sign -->
+                    <td>${{ billing.total_discount }}</td> <!-- Formatted with dollar sign -->
+                    <td>{{ billing.created_at }}</td>
+                    <td class="action-links">
+                        <a href="{% url 'download_billing' billing.id %}">Download</a> <!-- Download link -->
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="empty-message">No billing records available.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</body>
+</html>

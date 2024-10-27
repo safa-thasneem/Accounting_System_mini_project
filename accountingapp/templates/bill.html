@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Bill</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+
+        .bill-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1, h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #28a745;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        button[type="button"] {
+            background-color: #007bff;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .total-container {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        .total-container label {
+            font-weight: bold;
+        }
+
+        .total-container span {
+            font-size: 20px;
+            color: #28a745;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="bill-container">
+    <h1>Bill for {{ bill.party.name }}</h1>
+
+    <!-- Bill details -->
+    <h2>Bill Details</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>No.</th>
+                <th>Item Name</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Tax (%)</th>
+                <th>Discount (%)</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in bill.billitem_set.all %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ item.item.name }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.item.price }}</td>
+                <td>{{ item.item.tax_rate }}</td>
+                <td>{{ item.item.discount_rate }}</td>
+                <td>
+                    {% with price=item.item.price discount=item.item.discount_rate tax=item.item.tax_rate %}
+                    {% set discounted_price = price - (price * discount / 100) %}
+                    {{ (discounted_price + (discounted_price * tax / 100)) * item.quantity|floatformat:2 }}
+                    {% endwith %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Total Amount -->
+    <div class="total-container">
+        <label>Total Amount:</label>
+        <span id="total-amount">{{ bill.total_amount }}</span>
+    </div>
+
+    <!-- Print Button -->
+    <button type="button" onclick="window.print()">Print Bill</button>
+
+    <!-- Download PDF Button (Assuming there's a view to generate PDF) -->
+    <a href="{% url 'download_bill_pdf' bill.id %}">
+        <button type="button">Download PDF</button>
+    </a>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,163 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Item</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .back-link {
+            display: block;
+            margin-top: 20px;
+            text-align: center;
+            color: #007BFF;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Add Item</h2>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                {{ form.name.label }} {{ form.name }}
+            </div>
+            <div class="form-group">
+                {{ form.price.label }} {{ form.price }}
+            </div>
+            <div class="form-group">
+                {{ form.category.label }} {{ form.category }}
+            </div>
+            <div class="form-group">
+                {{ form.has_tax.label }} {{ form.has_tax }}
+            </div>
+            <div class="form-group hidden" id="tax-amount">
+                {{ form.tax_rate.label }} {{ form.tax_rate }}
+            </div>
+            <div class="form-group">
+                {{ form.has_discount.label }} {{ form.has_discount }}
+            </div>
+            <div class="form-group hidden" id="discount-amount">
+                {{ form.discount_rate.label }} {{ form.discount_rate }}
+            </div>
+            <div class="form-group">
+                <label for="id_stock_level">Stock Level</label>
+                <input type="number" id="id_stock_level" name="stock_level" min="0" step="1" required>
+            </div>
+            <button type="submit">Add Item</button>
+        </form>
+        <a href="{% url 'item_list' %}" class="back-link">Back to Item List</a>
+    </div>
+
+    <script>
+        // Get elements
+        const hasTaxCheckbox = document.querySelector('#id_has_tax');
+        const taxAmountDiv = document.getElementById('tax-amount');
+        const hasDiscountCheckbox = document.querySelector('#id_has_discount');
+        const discountAmountDiv = document.getElementById('discount-amount');
+
+        // Toggle visibility of tax amount field
+        function toggleTaxAmount() {
+            if (hasTaxCheckbox.checked) {
+                taxAmountDiv.classList.remove('hidden');
+            } else {
+                taxAmountDiv.classList.add('hidden');
+            }
+        }
+
+        // Toggle visibility of discount amount field
+        function toggleDiscountAmount() {
+            if (hasDiscountCheckbox.checked) {
+                discountAmountDiv.classList.remove('hidden');
+            } else {
+                discountAmountDiv.classList.add('hidden');
+            }
+        }
+
+        // Event listeners for checkbox changes
+        hasTaxCheckbox.addEventListener('change', toggleTaxAmount);
+        hasDiscountCheckbox.addEventListener('change', toggleDiscountAmount);
+
+        // Initial check on page load
+        window.onload = function() {
+            toggleTaxAmount();
+            toggleDiscountAmount();
+        };
+    </script>
+</body>
+</html>

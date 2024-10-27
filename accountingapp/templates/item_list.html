@@ -1,0 +1,185 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Items List</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+        }
+
+        .add-item {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+
+        .add-item a {
+            padding: 10px 15px;
+            background-color: #4CAF50; /* Green color for add button */
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .add-item a:hover {
+            background-color: #45a049; /* Darker green on hover */
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 16px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2; /* Light gray for header */
+            color: #555;
+        }
+
+        tr:hover {
+            background-color: #f9f9f9; /* Light gray on row hover */
+        }
+
+        .action-links a {
+            margin-right: 10px;
+            text-decoration: none;
+            color: #007BFF; /* Blue color for action links */
+            transition: color 0.3s;
+        }
+
+        .action-links a:hover {
+            color: #0056b3; /* Darker blue on hover */
+            text-decoration: underline;
+        }
+
+        @media (max-width: 600px) {
+            table, th, td {
+                font-size: 14px; /* Smaller font size on small screens */
+            }
+
+            .add-item {
+                text-align: center; /* Center add item button on small screens */
+                margin-bottom: 15px;
+            }
+            .search-bar {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .search-bar {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .search-bar input {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 60%;
+        }
+
+        .search-bar button {
+            padding: 10px 15px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .search-bar button:hover {
+            background-color: #0056b3;
+        }
+
+
+    </style>
+</head>
+<body>
+    <div class="container">
+                <a href="{% url 'dashboard' %}" class="back-home">Back to Home</a>
+
+        <h2>Items List</h2>
+
+        <div class="search-bar">
+            <form method="GET" action="{% url 'item_list' %}">
+                <input type="text" name="search" placeholder="Search items..." value="{{ request.GET.search }}">
+                <button type="submit">Search</button>
+            </form>
+        </div>
+        <div class="add-item">
+            <a href="{% url 'add_item' %}">Add Item</a> <!-- Add button -->
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Tax(%)</th>
+                    <th>Discount(%)</th>
+                    <th>Stock Level</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>{{ item.name }}</td>
+                    <td>${{ item.price }}</td> <!-- Format price with dollar sign -->
+                    <td>{{ item.tax_rate }}</td>
+                    <td>{{ item.discount_rate }}</td>
+                    <td>{{ item.stock_level }}</td>
+                    <td class="action-links">
+                            <a href="{% url 'update_item' item.id %}">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                            |
+                            <a href="{% url 'delete_item' item.id %}">
+                                <i class="fas fa-trash-alt"></i> Delete
+                            </a>
+                        </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" style="text-align:center;">No items available.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

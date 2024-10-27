@@ -1,0 +1,173 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>List of Parties</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+        }
+
+        .search-bar {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .search-bar input {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 60%;
+        }
+
+        .search-bar button {
+            padding: 10px 15px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .search-bar button:hover {
+            background-color: #0056b3;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table th, table td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        table th {
+            background-color: #f2f2f2;
+            color: #333;
+        }
+
+        table td {
+            color: #555;
+        }
+
+        .action-links a {
+            text-decoration: none;
+            color: #007BFF;
+            transition: color 0.3s;
+        }
+
+        .action-links a:hover {
+            color: #0056b3;
+        }
+
+        .no-parties {
+            text-align: center;
+            margin-top: 20px;
+            color: #ff4c4c;
+            font-size: 18px;
+        }
+
+        .add-party {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .add-party a {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .add-party a:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="{% url 'dashboard' %}" class="back-home">Back to Home</a>
+
+        <h2>List of Parties</h2>
+
+        <!-- Search Bar -->
+        <div class="search-bar">
+            <form method="GET" action="{% url 'party_list' %}">
+                <input type="text" name="search" placeholder="Search parties..." value="{{ request.GET.search }}">
+                <button type="submit">Search</button>
+            </form>
+        </div>
+
+        {% if parties %}
+        <!-- Parties Table -->
+        <table>
+            <thead>
+                <tr>
+                    <th>Party Name</th>
+                    <th>Phone Number</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for party in parties %}
+                    <tr>
+                        <td>{{ party.name }}</td>
+                        <td>{{ party.phone_number }}</td>
+                        <td class="action-links">
+                            <a href="{% url 'update_party' party.id %}">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                            |
+                            <a href="{% url 'delete_party' party.id %}">
+                                <i class="fas fa-trash-alt"></i> Delete
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <!-- No Parties Message -->
+        <div class="no-parties">
+            No parties available.
+        </div>
+        {% endif %}
+
+        <!-- Add New Party Button -->
+        <div class="add-party">
+            <a href="{% url 'add_party' %}">Add New Party</a>
+        </div>
+    </div>
+</body>
+</html>

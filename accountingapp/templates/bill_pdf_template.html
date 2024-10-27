@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bill PDF</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        .bill-details, .item-details {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .bill-details td, .item-details td, .item-details th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        .bill-details tr:nth-child(even), .item-details tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .bill-details tr:hover, .item-details tr:hover {
+            background-color: #ddd;
+        }
+        .bill-details td, .item-details th {
+            text-align: left;
+        }
+        .total {
+            text-align: right;
+        }
+        .header {
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Bill Summary</h1>
+        <p><strong>Bill ID:</strong> {{ bill.id }}</p>
+        <p><strong>Party:</strong> {{ bill.party.name }}</p>
+        <p><strong>Date:</strong> {{ bill.created_at|date:"d/m/Y" }}</p>
+    </div>
+
+    <table class="item-details">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Item</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Tax</th>
+                <th>Discount</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in bill_items %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ item.item.name }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.item.price }}</td>
+                <td>{{ item.item.tax_rate }}%</td>
+                <td>{{ item.item.discount_rate }}%</td>
+                <td>{{ item.item.price|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <table class="bill-details">
+        <tr>
+            <td class="total"><strong>Subtotal:</strong></td>
+            <td>{{ bill.total_amount|floatformat:2 }}</td>
+        </tr>
+        <tr>
+            <td class="total"><strong>Total Tax:</strong></td>
+            <td>{{ bill.total_tax|floatformat:2 }}</td>
+        </tr>
+        <tr>
+            <td class="total"><strong>Total Discount:</strong></td>
+            <td>{{ bill.total_discount|floatformat:2 }}</td>
+        </tr>
+        <tr>
+            <td class="total"><strong>Total Amount:</strong></td>
+            <td>{{ bill.total_amount|floatformat:2 }}</td>
+        </tr>
+    </table>
+
+</body>
+</html>

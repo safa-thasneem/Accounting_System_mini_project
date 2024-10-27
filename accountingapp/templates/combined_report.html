@@ -1,0 +1,157 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Combined Sales and Purchase Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1, h3 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .report-section {
+            margin-bottom: 40px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 16px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            color: #555;
+        }
+
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .summary {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f2f2f2;
+            border-radius: 8px;
+        }
+
+        .summary p {
+            font-size: 18px;
+            color: #333;
+        }
+
+        .summary p span {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Combined Sales and Purchase Report</h1>
+
+        <!-- Sales Report Section -->
+        <div class="report-section">
+            <h3>Sales Report</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Party</th>
+                        <th>Total Amount</th>
+                        <th>Total Tax</th>
+                        <th>Total Discount</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sale in sales %}
+                    <tr>
+                        <td>{{ sale.party.name }}</td>
+                        <td>${{ sale.total_amount }}</td>
+                        <td>${{ sale.total_tax }}</td>
+                        <td>${{ sale.total_discount }}</td>
+                        <td>{{ sale.created_at }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align:center;">No sales data available.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="summary">
+                <p>Total Sales Amount: <span>${{ total_sales_summary.total_amount }}</span></p>
+                <p>Total Sales Tax: <span>${{ total_sales_summary.total_tax }}</span></p>
+                <p>Total Sales Discount: <span>${{ total_sales_summary.total_discount }}</span></p>
+            </div>
+        </div>
+
+        <!-- Purchase Report Section -->
+        <div class="report-section">
+            <h3>Purchase Report</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Party</th>
+                        <th>Total Amount</th>
+                        <th>Total Tax</th>
+                        <th>Total Discount</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for purchase in purchases %}
+                    <tr>
+                        <td>{{ purchase.party.name }}</td>
+                        <td>${{ purchase.total_amount }}</td>
+                        <td>${{ purchase.total_tax }}</td>
+                        <td>${{ purchase.total_discount }}</td>
+                        <td>{{ purchase.created_at }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align:center;">No purchase data available.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="summary">
+                <p>Total Purchase Amount: <span>${{ total_purchase_summary.total_amount }}</span></p>
+                <p>Total Purchase Tax: <span>${{ total_purchase_summary.total_tax }}</span></p>
+                <p>Total Purchase Discount: <span>${{ total_purchase_summary.total_discount }}</span></p>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
