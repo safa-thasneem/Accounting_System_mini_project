@@ -1,0 +1,236 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Bill</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        .container {
+            width: 80%;
+            max-width: 1200px;
+            margin: 20px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .back-link a {
+            text-decoration: none;
+            color: #333;
+            font-size: 1rem;
+        }
+
+        h1 {
+            text-align: center;
+            color: #444;
+        }
+
+        .form-group {
+            margin: 20px 0;
+        }
+
+        label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        select, input[type="number"] {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table thead {
+            background-color: #555;
+            color: #fff;
+        }
+
+        table th, table td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+
+        table tbody tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .summary {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            font-size: 1.1rem;
+        }
+
+        .summary label {
+            font-weight: bold;
+        }
+
+        .form-actions {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .form-actions .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin: 0 10px;
+            color: white;
+        }
+
+        .btn {
+            background-color: #007bff;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+        .cancel {
+            background-color: #ff4d4d;
+        }
+
+        .cancel:hover {
+            background-color: #cc0000;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                width: 95%;
+            }
+
+            .summary {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .summary div {
+                margin-bottom: 10px;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="back-link">
+            <a href="{% url 'sales_report_view' %}">&larr; Back to Sales Report</a>
+        </div>
+        <h1>Edit Bill</h1>
+
+        <form method="post" id="edit-bill-form">
+            {% csrf_token %}
+
+            <!-- Party Selection -->
+            <div class="form-group">
+                <label for="party">Party</label>
+                <select id="party" name="party" required>
+                    {% for party in parties %}
+                        <option value="{{ party.id }}" {% if party.id == bill.party.id %}selected{% endif %}>{{ party.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Items Table -->
+            <h3>Bill Items</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Item Name</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Tax</th>
+                        <th>Discount</th>
+                        <th>Total</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="items-list">
+                    {% for item in bill.items.all %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>
+                                <select name="item_{{ forloop.counter }}">
+                                    {% for product in items %}
+                                        <option value="{{ product.id }}" {% if product.id == item.item.id %}selected{% endif %}>{{ product.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td><input type="number" name="quantity_{{ forloop.counter }}" value="{{ item.quantity }}" required></td>
+                            <td>{{ item.item.price }}</td>
+                            <td>{{ item.item.tax_rate }}</td>
+                            <td>{{ item.item.discount_rate }}</td>
+                            <td>{{ item.total }}</td>
+                            <td><button type="button" class="btn remove-btn" onclick="removeItem(this)">Remove</button></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Add New Item Button -->
+            <div class="form-group">
+                <button type="button" class="btn add-item-btn" onclick="addItem()">Add Item</button>
+            </div>
+
+            <!-- Total Summary -->
+            <div class="summary">
+                <div>
+                    <label>Total Amount:</label>
+                    <span id="total-amount">${{ bill.total_amount }}</span>
+                </div>
+                <div>
+                    <label>Total Tax:</label>
+                    <span id="total-tax">${{ bill.total_tax }}</span>
+                </div>
+                <div>
+                    <label>Total Discount:</label>
+                    <span id="total-discount">${{ bill.total_discount }}</span>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <button type="submit" class="btn">Save Changes</button>
+                <a href="{% url 'sales_report_view' %}" class="btn cancel">Cancel</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // JavaScript functions to dynamically add or remove items, calculate total amounts, taxes, and discounts
+        function addItem() {
+            // Logic to dynamically add new rows (based on your implementation)
+        }
+
+        function removeItem(button) {
+            // Logic to remove the item row
+            const row = button.closest('tr');
+            row.remove();
+        }
+    </script>
+</body>
+</html>

@@ -21,7 +21,7 @@
 
         .container {
             width: 80%;
-            max-width: 900px;
+<!--            max-width: 900px;-->
             margin: 0 auto;
             background: #fff;
             border-radius: 8px;
@@ -266,12 +266,26 @@
             removeCell.appendChild(removeBtn);
 
             selectedItemIds.push(itemId);
-            updateHiddenItemsInput();
+            console.log('Selected Item IDs:', selectedItemIds); // Debugging line
+
             updateTotal();
+            updateHiddenItemsInput();
+
         }
         selectElement.selectedIndex = 0;
     }
 
+   function updateHiddenItems() {
+    let hiddenItems = document.getElementById("hidden-items");
+    hiddenItems.value = selectedItemIds.join(',');
+    console.log('Updated hidden items:', hiddenItems.value); // Debugging line to check values
+
+    }
+    function updateHiddenItemsInput() {
+    let hiddenItems = document.getElementById("hidden-items");
+    hiddenItems.value = selectedItemIds.join(','); // Update the hidden input with selected item IDs
+    console.log('Updated hidden items:', hiddenItems.value); // Debugging line to check values
+}
     // Calculate subtotal
     function calculateSubtotal(price, quantity, tax, discount) {
         let discountedPrice = price * (1 - discount / 100);
@@ -284,8 +298,24 @@
         let price = parseFloat(row.cells[3].getElementsByTagName('input')[0].value);
         let quantity = parseInt(row.cells[2].getElementsByTagName('input')[0].value);
         let tax = parseFloat(row.cells[4].getElementsByTagName('input')[0].value);
+        let subtotal = calculateSubtotal(price, quantity, tax, discount);  // Calculate subtotal
 
+            // Update subtotal cell
+        row.getElementsByTagName('td')[6].textContent = subtotal.toFixed(2);
 
+            // Update the total amount
+        updateTotal();
+
+    }
+
+     // Update the total amount
+    function updateTotal() {
+        let total = 0;
+        let table = document.getElementById("items-table").getElementsByTagName('tbody')[0];
+        for (let row of table.rows) {
+            total += parseFloat(row.getElementsByTagName('td')[6].textContent); // Add subtotal of each row
+        }
+        document.getElementById('total-amount').textContent = total.toFixed(2); // Update total amount
     }
     
 </script>

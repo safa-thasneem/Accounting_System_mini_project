@@ -120,6 +120,20 @@
             background-color: #f9f9f9;
         }
 
+        .edit-button {
+            padding: 6px 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .edit-button:hover {
+            background-color: #218838;
+        }
+
         .no-data {
             text-align: center;
             margin: 20px 0;
@@ -159,6 +173,7 @@
                         <th>Party</th>
                         <th>Total Amount</th>
                         <th>Created At</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -168,6 +183,9 @@
                             <td>{{ bill.party.name }}</td> <!-- Adjust according to your model relationships -->
                             <td>${{ bill.total_amount }}</td>
                             <td>{{ bill.created_at|date:'Y-m-d H:i:s' }}</td>
+                            <td>
+                                <a class="edit-button" href="{% url 'edit_bill' bill.id %}">Edit</a>
+                            </td>
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -178,4 +196,3 @@
     </div>
 </body>
 </html>
-

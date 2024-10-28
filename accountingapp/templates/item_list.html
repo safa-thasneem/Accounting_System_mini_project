@@ -8,15 +8,76 @@
     <title>Items List</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        /* General Styles */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f4f4f4;
+            background-color: #f0f2f5;
+            color: #333;
         }
 
+        /* Navbar Styles */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #2C3E50;
+            padding: 10px 20px;
+        }
+
+        .navbar-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .navbar-logo {
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar-logo img {
+            height: 40px;
+            margin-right: 10px;
+        }
+
+        .project-name {
+            color: #ecf0f1;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .navbar-links {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-link {
+            color: #ecf0f1;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+
+        .nav-link:hover {
+            background-color: #34495E;
+        }
+
+        .toggle-button {
+            display: none;
+            background: none;
+            border: none;
+            color: #ecf0f1;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Container Styles */
         .container {
-            max-width: 900px;
+            max-width: 1200px;
             margin: 50px auto;
             padding: 20px;
             background-color: #ffffff;
@@ -30,6 +91,22 @@
             text-align: center;
         }
 
+        .back-home {
+            display: inline-block;
+            margin-bottom: 15px;
+            padding: 10px 20px;
+            color: #fff;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+
+        .back-home:hover {
+            background-color: #0056b3;
+        }
+
         .add-item {
             text-align: right;
             margin-bottom: 20px;
@@ -37,7 +114,7 @@
 
         .add-item a {
             padding: 10px 15px;
-            background-color: #4CAF50; /* Green color for add button */
+            background-color: #28A745;
             color: white;
             text-decoration: none;
             border-radius: 5px;
@@ -45,9 +122,10 @@
         }
 
         .add-item a:hover {
-            background-color: #45a049; /* Darker green on hover */
+            background-color: #218838;
         }
 
+        /* Table Styles */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -62,41 +140,29 @@
         }
 
         th {
-            background-color: #f2f2f2; /* Light gray for header */
-            color: #555;
+            background-color: #f8f9fa;
+            color: #333;
+            font-weight: bold;
         }
 
         tr:hover {
-            background-color: #f9f9f9; /* Light gray on row hover */
+            background-color: #f1f1f1;
         }
 
+        /* Action Links */
         .action-links a {
             margin-right: 10px;
             text-decoration: none;
-            color: #007BFF; /* Blue color for action links */
+            color: #007BFF;
             transition: color 0.3s;
         }
 
         .action-links a:hover {
-            color: #0056b3; /* Darker blue on hover */
+            color: #0056b3;
             text-decoration: underline;
         }
 
-        @media (max-width: 600px) {
-            table, th, td {
-                font-size: 14px; /* Smaller font size on small screens */
-            }
-
-            .add-item {
-                text-align: center; /* Center add item button on small screens */
-                margin-bottom: 15px;
-            }
-            .search-bar {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-
+        /* Search Bar Styles */
         .search-bar {
             display: flex;
             justify-content: center;
@@ -125,61 +191,119 @@
             background-color: #0056b3;
         }
 
+        /* Responsive Table for Mobile */
+        @media (max-width: 768px) {
+            .navbar-links {
+                display: none;
+                flex-direction: column;
+                gap: 10px;
+                position: absolute;
+                top: 60px;
+                right: 0;
+                background-color: #2C3E50;
+                width: 100%;
+                padding: 10px 0;
+            }
 
+            .navbar-links.active {
+                display: flex;
+            }
+
+            .toggle-button {
+                display: block;
+            }
+
+            table, th, td {
+                font-size: 14px;
+            }
+
+            .add-item {
+                text-align: center;
+                margin-bottom: 15px;
+            }
+
+            .search-bar input {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-                <a href="{% url 'dashboard' %}" class="back-home">Back to Home</a>
-
-        <h2>Items List</h2>
-
-        <div class="search-bar">
-            <form method="GET" action="{% url 'item_list' %}">
-                <input type="text" name="search" placeholder="Search items..." value="{{ request.GET.search }}">
-                <button type="submit">Search</button>
-            </form>
+<!-- Simplified Navbar -->
+<nav class="navbar">
+    <div class="navbar-container">
+        <div class="navbar-logo">
+            <img src="{% static 'path/to/your/logo.png' %}" alt="Logo">
+            <span class="project-name">Accounting System</span>
         </div>
-        <div class="add-item">
-            <a href="{% url 'add_item' %}">Add Item</a> <!-- Add button -->
+        <div class="navbar-links">
+            <a href="{% url 'dashboard' %}" class="nav-link">Home</a>
+            <a href="{% url 'category_list' %}" class="nav-link">Category</a>
+            <a href="{% url 'item_list' %}" class="nav-link">Item</a>
+            <a href="{% url 'party_list' %}" class="nav-link">Parties</a>
+            <a href="{% url 'create_bill' %}" class="nav-link">Billing</a>
+            <a href="{% url 'create_purchase' %}" class="nav-link">Purchase</a>
+            <a href="{% url 'report' %}" class="nav-link">Reports</a>
+            <a href="{% url 'logout' %}" class="nav-link">Logout</a>
         </div>
+        <button class="toggle-button" onclick="toggleNavbar()"><i class="fas fa-bars"></i></button>
+    </div>
+</nav>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Price</th>
-                    <th>Tax(%)</th>
-                    <th>Discount(%)</th>
-                    <th>Stock Level</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in items %}
+<!-- Content Container -->
+<div class="container">
+
+    <h2>Items List</h2>
+
+    <div class="search-bar">
+        <form method="GET" action="{% url 'item_list' %}">
+            <input type="text" name="search" placeholder="Search items..." value="{{ request.GET.search }}">
+            <button type="submit">Search</button>
+        </form>
+    </div>
+
+    <div class="add-item">
+        <a href="{% url 'add_item' %}">Add Item</a>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Tax (%)</th>
+                <th>Discount (%)</th>
+                <th>Stock Level</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
                 <tr>
                     <td>{{ item.name }}</td>
-                    <td>${{ item.price }}</td> <!-- Format price with dollar sign -->
+                    <td>${{ item.price }}</td>
                     <td>{{ item.tax_rate }}</td>
                     <td>{{ item.discount_rate }}</td>
                     <td>{{ item.stock_level }}</td>
                     <td class="action-links">
-                            <a href="{% url 'update_item' item.id %}">
-                                <i class="fas fa-edit"></i> Edit
-                            </a>
-                            |
-                            <a href="{% url 'delete_item' item.id %}">
-                                <i class="fas fa-trash-alt"></i> Delete
-                            </a>
-                        </td>
+                        <a href="{% url 'update_item' item.id %}"><i class="fas fa-edit"></i> Edit</a>
+                        <a href="{% url 'delete_item' item.id %}"><i class="fas fa-trash-alt"></i> Delete</a>
+                    </td>
                 </tr>
-                {% empty %}
+            {% empty %}
                 <tr>
-                    <td colspan="4" style="text-align:center;">No items available.</td>
+                    <td colspan="6" style="text-align: center;">No items available.</td>
                 </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- JavaScript to toggle the navigation menu -->
+<script>
+    function toggleNavbar() {
+        document.querySelector('.navbar-links').classList.toggle('active');
+    }
+</script>
 </body>
 </html>

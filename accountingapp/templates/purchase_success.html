@@ -1,0 +1,62 @@
+<!-- purchase_success.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Purchase Success</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
+
+        .popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .popup h2 {
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+
+        .popup p {
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+
+        .popup button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .popup button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+<div class="popup">
+    <h2>Success!</h2>
+    <p>Your purchase was saved successfully.</p>
+    <button onclick="window.location.href='{% url 'create_purchase' %}'">Create Another Purchase</button>
+</div>
+
+</body>
+</html>

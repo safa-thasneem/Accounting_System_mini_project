@@ -7,7 +7,7 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('login/', views.login_view, name='login'),
     path('dashboard/', views.dashboard, name='dashboard'),
-    path('dashboard_view/', views.dashboard_view, name='dashboard'),
+    path('dashboard_view/', views.dashboard_view, name='dashboard_view'),
 
     path('logout/', views.logout_view, name='logout'),
     path('categories/add/', views.add_category, name='add_category'),
@@ -30,9 +30,10 @@ urlpatterns = [
     path('create_bill/', views.create_bill, name='create_bill'),
     path('view_bill/<int:bill_id>/', views.view_bill, name='view_bill'),
     # Path for viewing a specific bill (e.g., after saving)
-    # path('bill/<int:bill_id>/', views.view_bill, name='view_bill'),
-    path('view_purchase/<int:purchase_id>/', views.view_purchase, name='view_purchase'),
+    # path('purchase/<int:purchase_id>/', views.view_purchase, name='view_purchase'),
+
     path('create_purchase/', views.create_purchase, name='create_purchase'),
+    path('purchase_success/', views.purchase_success, name='purchase_success'),
 
     # Path for downloading a bill as a PDF
     path('download_bill_pdf/<int:bill_id>/', views.download_bill_pdf, name='download_bill_pdf'),
@@ -43,6 +44,7 @@ urlpatterns = [
     path('sales-report/', views.sales_report_view, name='sales_report_view'),
     path('purchase-report/', views.purchase_report_view, name='purchase_report_view'),
     path('sales-report/', views.purchase_report_view, name='sales_report_view'),
+    path('edit-bill/<int:id>/', views.edit_bill, name='edit_bill'),
     path('search-party/', views.search_party, name='search_party'),
     path('search-item/', views.search_item, name='search_item'),
     path('stock-level/',views.check_low_stock,name='check_low_stock'),

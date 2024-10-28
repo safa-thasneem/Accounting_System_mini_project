@@ -62,6 +62,9 @@ class BillItem(models.Model):
     bill = models.ForeignKey(Bill, on_delete=models.CASCADE)
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
+    price = models.DecimalField(max_digits=10, decimal_places=2,default=0.00)
+    tax_rate = models.DecimalField(max_digits=5, decimal_places=2,default=0.00)  # Changed field name
+    discount_rate = models.DecimalField(max_digits=5, decimal_places=2,default=0.00)  # Changed field name
 
 
 
@@ -77,4 +80,7 @@ class PurchaseItem(models.Model):
     purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE)
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
+    price = models.DecimalField(max_digits=10, decimal_places=2,default=0.00)
+    tax_rate = models.DecimalField(max_digits=5, decimal_places=2,default=0.00)  # Changed field name
+    discount_rate = models.DecimalField(max_digits=5, decimal_places=2,default=0.00)  # Changed field name
 
