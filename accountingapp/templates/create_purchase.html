@@ -3,318 +3,291 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> Add purchase</title>
+    <title>Add Purchase</title>
     <style>
+        /* General Styles */
         body {
             font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
             margin: 0;
             padding: 20px;
-            background-color: #f9f9f9;
-        }
-
-        form {
-            max-width: 800px;
-            margin: 0 auto;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            color: #333;
         }
 
         h1 {
             text-align: center;
-            margin-bottom: 20px;
+            color: #444;
         }
 
-        label {
-            font-weight: bold;
-            margin-top: 10px;
+        .container {
+            width: 80%;
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        .form-section {
+            margin: 20px 0;
+        }
+
+        .form-section label {
             display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
         }
 
-        input[type="text"],
-        select,
-        input[type="number"] {
+        .form-section input[type="text"],
+        .form-section select {
             width: 100%;
             padding: 10px;
-            margin: 5px 0 20px 0;
+            margin-bottom: 15px;
             border: 1px solid #ddd;
             border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .table-container {
+            overflow-x: auto;
         }
 
         table {
             width: 100%;
-            margin-top: 20px;
             border-collapse: collapse;
-        }
-
-        table, th, td {
-            border: 1px solid #ddd;
+            margin: 20px 0;
         }
 
         th, td {
-            padding: 10px;
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
             text-align: center;
         }
 
         th {
-            background-color: #f4f4f4;
-        }
-
-        tbody tr {
-            background-color: #fff;
-        }
-
-        tbody tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-
-        button {
-            padding: 10px 20px;
-            border: none;
-            background-color: #28a745;
-            color: #fff;
-            cursor: pointer;
-            border-radius: 5px;
-            margin: 10px 0;
-            display: inline-block;
-        }
-
-        button[type="button"] {
-            background-color: #007bff;
-        }
-
-        button:hover {
-            opacity: 0.9;
+            background-color: #f1f1f1;
+            font-weight: bold;
         }
 
         .total-container {
-            margin-top: 20px;
-            font-size: 18px;
+            text-align: right;
+            margin: 20px 0;
         }
 
         .total-container label {
+            font-size: 18px;
             font-weight: bold;
         }
 
         .total-container span {
             font-size: 20px;
-            color: #28a745;
-            font-weight: bold;
+            color: #444;
         }
 
-        .form-section {
-            margin-bottom: 20px;
+        .button-container {
+            text-align: center;
+        }
+
+        button[type="submit"] {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #45a049;
+        }
+
+        .remove-button {
+            padding: 6px 12px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .remove-button:hover {
+            background-color: #d32f2f;
         }
     </style>
 </head>
 <body>
 
-<h1>Add purchase</h1>
+<div class="container">
+    <h1>Add Purchase</h1>
 
-<form method="POST">
-    {% csrf_token %}
-    <div class="form-section">
-        <!-- Party Search Bar -->
-        <label for="party">Select Party:</label>
-        <input type="text" id="party" placeholder="Search for a party..." oninput="filterParties()">
-        <select id="party-dropdown" name="party" required>
-            <option value="">-- Select Party --</option>
-            {% for party in parties %}
-            <option value="{{ party.id }}">{{ party.name }}</option>
-            {% endfor %}
-        </select>
-    </div>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-section">
+            <label for="party">Select Party:</label>
+            <input type="text" id="party" placeholder="Search for a party..." oninput="filterParties()">
+            <select id="party-dropdown" name="party" required>
+                <option value="">-- Select Party --</option>
+                {% for party in parties %}
+                <option value="{{ party.id }}">{{ party.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
 
-    <div class="form-section">
-        <!-- Item Search Bar -->
-        <label for="item-search">Select Items:</label>
-        <input type="text" id="item-search" placeholder="Search for an item..." oninput="filterItems()">
-        <select id="item-select"  name="items" onchange="addItemToTable(this)">
-            <option value="" name="item">-- Select Item --</option>
-            {% for item in items %}
-            <option value="{{ item.id }}" data-price="{{ item.price }}" data-tax="{{ item.tax_rate }}" data-discount="{{ item.discount_rate }}">
-                {{ item.name }}
-            </option>
-            {% endfor %}
-        </select>
-    </div>
-<input type="hidden" id="hidden-items" name="hidden_items" value="">
+        <div class="form-section">
+            <label for="item-search">Select Items:</label>
+            <input type="text" id="item-search" placeholder="Search for an item..." oninput="filterItems()">
+            <select id="item-select" name="items" onchange="addItemToTable(this)">
+                <option value="" name="item">-- Select Item --</option>
+                {% for item in items %}
+                <option value="{{ item.id }}" data-price="{{ item.price }}" data-tax="{{ item.tax_rate }}" data-discount="{{ item.discount_rate }}">
+                    {{ item.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
 
-    <!-- Items Table -->
-    <table id="items-table">
-        <thead>
-            <tr>
-                <th>No.</th>
-                <th>Item Name</th>
-                <th>Quantity</th>
-                <th>Price</th>
-                <th>Tax(%)</th>
-                <th>Discount(%)</th>
-                <th>Subtotal</th>
-                <th>Remove</th>
-            </tr>
-        </thead>
-        <tbody>
+        <input type="hidden" id="hidden-items" name="hidden_items" value="">
 
-        </tbody>
-    </table>
+        <div class="table-container">
+            <table id="items-table">
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Item Name</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Tax (%)</th>
+                        <th>Discount (%)</th>
+                        <th>Subtotal</th>
+                        <th>Remove</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
 
-    <!-- Total Amount -->
-    <div class="total-container">
-        <label>Total Amount:</label>
-        <span id="total-amount">0.00</span>
-    </div>
+        <div class="total-container">
+            <label>Total Amount:</label>
+            <span id="total-amount">0.00</span>
+        </div>
 
-    <!-- Save and Print Buttons -->
-    <button type="submit">Save Bill</button>
-
-</form>
+        <div class="button-container">
+            <button type="submit">Save</button>
+        </div>
+    </form>
+</div>
 
 <script>
+    let selectedItemIds = [];
 
-    document.addEventListener('DOMContentLoaded', () => {
-        console.log('Script loaded');
-        });
+    // Add item to table function
+    function addItemToTable(selectElement) {
+        let itemId = selectElement.value;
+        if (itemId && !document.getElementById('row-item-' + itemId)) {
+            let itemText = selectElement.options[selectElement.selectedIndex].text;
+            let itemPrice = parseFloat(selectElement.options[selectElement.selectedIndex].getAttribute("data-price"));
+            let itemTax = parseFloat(selectElement.options[selectElement.selectedIndex].getAttribute("data-tax"));
+            let itemDiscount = parseFloat(selectElement.options[selectElement.selectedIndex].getAttribute("data-discount"));
 
-    // Add item to table
-   let selectedItemIds = []; // To store selected item IDs
-function addItemToTable(selectElement) {
-    let itemId = selectElement.value;
+            let table = document.getElementById("items-table").getElementsByTagName('tbody')[0];
+            let rowCount = table.rows.length;
+            let row = table.insertRow(rowCount);
+            row.setAttribute('id', 'row-item-' + itemId);
 
-    if (itemId && !document.getElementById('row-item-' + itemId)) {
-        // Fetch item details
-        let itemText = selectElement.options[selectElement.selectedIndex].text;
-        let itemPrice = parseFloat(selectElement.options[selectElement.selectedIndex].getAttribute("data-price"));
-        let itemTax = parseFloat(selectElement.options[selectElement.selectedIndex].getAttribute("data-tax"));
-        let itemDiscount = parseFloat(selectElement.options[selectElement.selectedIndex].getAttribute("data-discount"));
+            row.insertCell(0).textContent = rowCount + 1;
+            row.insertCell(1).textContent = itemText;
 
-        let table = document.getElementById("items-table").getElementsByTagName('tbody')[0];
-        let rowCount = table.rows.length;
+            // Quantity input
+            let quantityCell = row.insertCell(2);
+            let quantityInput = document.createElement("input");
+            quantityInput.type = "number";
+            quantityInput.name = "quantities";
+            quantityInput.value = 1;
+            quantityInput.min = 1;
+            quantityInput.oninput = function () {
+                updateSubtotal(row);
+            };
+            quantityCell.appendChild(quantityInput);
 
-        let row = table.insertRow(rowCount);
-        row.setAttribute('id', 'row-item-' + itemId);
+            // Price input
+            let priceCell = row.insertCell(3);
+            let priceInput = document.createElement("input");
+            priceInput.type = "number";
+            priceInput.name = "price";
+            priceInput.value = itemPrice.toFixed(2);
+            priceInput.min = 0;
+            priceInput.oninput = function () {
+                updateSubtotal(row);
+            };
+            priceCell.appendChild(priceInput);
 
-        // Add cells
-        row.insertCell(0).textContent = rowCount + 1;
-        row.insertCell(1).textContent = itemText;
+            // Tax input
+            let taxCell = row.insertCell(4);
+            let taxInput = document.createElement("input");
+            taxInput.type = "number";
+            taxInput.name = "tax";
+            taxInput.value = itemTax ? itemTax.toFixed(2) : "0.00";
+            taxInput.min = 0;
+            taxInput.oninput = function () {
+                updateSubtotal(row);
+            };
+            taxCell.appendChild(taxInput);
 
-        let quantityCell = row.insertCell(2);
-        let input = document.createElement("input");
-        input.type = "number";
-        input.name = "quantities";
-        input.value = 1;
-        input.min = 1;
-        input.onchange = function() {
-            updateSubtotal(row, itemPrice, itemTax, itemDiscount);
-        };
-        quantityCell.appendChild(input);
+            // Discount input
+            let discountCell = row.insertCell(5);
+            let discountInput = document.createElement("input");
+            discountInput.type = "number";
+            discountInput.name = "discount";
+            discountInput.value = itemDiscount ? itemDiscount.toFixed(2) : "0.00";
+            discountInput.min = 0;
+            discountInput.oninput = function () {
+                updateSubtotal(row);
+            };
+            discountCell.appendChild(discountInput);
 
-        row.insertCell(3).textContent = itemPrice.toFixed(2);
-        row.insertCell(4).textContent = itemTax ? itemTax.toFixed(2) : "0.00";
-        row.insertCell(5).textContent = itemDiscount ? itemDiscount.toFixed(2) : "0.00";
+            // Subtotal cell
+            let subtotalCell = row.insertCell(6);
+            let subtotal = calculateSubtotal(priceInput.value, quantityInput.value, taxInput.value, discountInput.value);
+            subtotalCell.textContent = subtotal.toFixed(2);
 
-        let subtotalCell = row.insertCell(6);
-        let subtotal = calculateSubtotal(itemPrice, 1, itemTax, itemDiscount);
-        subtotalCell.textContent = subtotal.toFixed(2);
 
-        let removeCell = row.insertCell(7);
-        let removeBtn = document.createElement("button");
-        removeBtn.type = "button";
-        removeBtn.textContent = "Remove";
-        removeBtn.onclick = function() {
-            removeItemFromTable(row);
-        };
-        removeCell.appendChild(removeBtn);
+            // Remove button
+            let removeCell = row.insertCell(7);
+            let removeBtn = document.createElement("button");
+            removeBtn.type = "button";
+            removeBtn.className = "remove-button";
+            removeBtn.textContent = "Remove";
+            removeBtn.onclick = function () {
+                removeItemFromTable(row);
+            };
+            removeCell.appendChild(removeBtn);
 
-        selectedItemIds.push(itemId);
-        console.log('Selected Item IDs:', selectedItemIds); // Debugging line
-        updateTotal();
-        updateHiddenItemsInput(); // Ensure this is called here
+            selectedItemIds.push(itemId);
+            updateHiddenItemsInput();
+            updateTotal();
+        }
+        selectElement.selectedIndex = 0;
     }
 
-    selectElement.selectedIndex = 0;
-}
-
-
-
-   function updateHiddenItems() {
-    let hiddenItems = document.getElementById("hidden-items");
-    hiddenItems.value = selectedItemIds.join(',');
-    console.log('Updated hidden items:', hiddenItems.value); // Debugging line to check values
-
-    }
-
-
-    // Calculate subtotal for each row
+    // Calculate subtotal
     function calculateSubtotal(price, quantity, tax, discount) {
-        let discountedPrice = price * (1 - (discount / 100));  // Apply discount
-        let totalWithTax = discountedPrice * (1 + (tax / 100));  // Apply tax
-        return totalWithTax * quantity;  // Multiply by quantity
+        let discountedPrice = price * (1 - discount / 100);
+        let totalWithTax = discountedPrice * (1 + tax / 100);
+        return totalWithTax * quantity;
     }
 
-    // Update subtotal for a row
-    function updateSubtotal(row, price, tax, discount) {
-        let quantity = row.getElementsByTagName('input')[0].value;  // Get quantity
-        let subtotal = calculateSubtotal(price, quantity, tax, discount);  // Calculate subtotal
+    // Update subtotal function
+    function updateSubtotal(row) {
+        let price = parseFloat(row.cells[3].getElementsByTagName('input')[0].value);
+        let quantity = parseInt(row.cells[2].getElementsByTagName('input')[0].value);
+        let tax = parseFloat(row.cells[4].getElementsByTagName('input')[0].value);
 
-        // Update subtotal cell
-        row.getElementsByTagName('td')[6].textContent = subtotal.toFixed(2);
 
-        // Update the total amount
-        updateTotal();
     }
-
-    // Remove item from table
-    function removeItemFromTable(row) {
-        let itemId = row.getAttribute('id').split('-')[2];  // Get item ID from row ID
-        selectedItemIds = selectedItemIds.filter(id => id !== itemId);  // Remove item ID from selected items
-        row.parentNode.removeChild(row);  // Remove the row
-        updateTotal();  // Update total
-        updateHiddenItemsInput();  // Update hidden input
-    }
-function updateHiddenItemsInput() {
-    let hiddenItems = document.getElementById("hidden-items");
-    hiddenItems.value = selectedItemIds.join(','); // Update the hidden input with selected item IDs
-    console.log('Updated hidden items:', hiddenItems.value); // Debugging line to check values
-}
-
-
-    // Update the total amount
-    function updateTotal() {
-        let total = 0;
-        let table = document.getElementById("items-table").getElementsByTagName('tbody')[0];
-        for (let row of table.rows) {
-            total += parseFloat(row.getElementsByTagName('td')[6].textContent); // Add subtotal of each row
-        }
-        document.getElementById('total-amount').textContent = total.toFixed(2); // Update total amount
-    }
-
-    // Filter parties
-    function filterParties() {
-        let input = document.getElementById("party");
-        let filter = input.value.toLowerCase();
-        let dropdown = document.getElementById("party-dropdown");
-        for (let i = 1; i < dropdown.options.length; i++) {
-            let option = dropdown.options[i];
-            option.style.display = option.text.toLowerCase().includes(filter) ? "" : "none"; // Show or hide options
-        }
-    }
-
-    // Filter items
-    function filterItems() {
-        let input = document.getElementById("item-search");
-        let filter = input.value.toLowerCase();
-        let dropdown = document.getElementById("item-select");
-        for (let i = 1; i < dropdown.options.length; i++) {
-            let option = dropdown.options[i];
-            option.style.display = option.text.toLowerCase().includes(filter) ? "" : "none"; // Show or hide options
-        }
-    }
-
+    
 </script>
-
 </body>
 </html>
-
-

@@ -331,8 +331,6 @@ def create_bill(request):
             item.stock_level -= quantity  # Decrease stock level
             item.save()
 
-
-
         print("Total Amount:", total_amount)
         print("Total Tax:", total_tax)
         print("Total Discount:", total_discount)
@@ -349,9 +347,6 @@ def create_bill(request):
     parties = Parties.objects.all()
     items = Item.objects.all()
     return render(request, 'create_bill.html', {'parties': parties, 'items': items})
-
-
-
 
 def view_bill(request, bill_id):
     bill = get_object_or_404(Bill, id=bill_id)
@@ -384,10 +379,202 @@ def download_bill_pdf(request,bill_id):
     if pisa_status.err:
         return HttpResponse('Error creating PDF', status=400)
 
+# def create_purchase(request):
+#     if request.method == "POST":
+#         print("Received form data:", request.POST)
+#
+#         party_id = request.POST.get('party')
+#         if not party_id:
+#             parties = Parties.objects.all()
+#             items = Item.objects.all()
+#             return render(request, 'create_purchase.html', {
+#                 'error': 'Please select a party.',
+#                 'parties': parties,
+#                 'items': items
+#             })
+#
+#         party = get_object_or_404(Parties, id=party_id)
+#         print("Selected party:", party)
+#
+#         purchase = Purchase.objects.create(party=party, total_amount=0, total_tax=0, total_discount=0)
+#
+#         # Retrieve hidden items and convert to list of integers
+#         hidden_items = request.POST.get('hidden_items', '')
+#         item_ids = [int(item_id) for item_id in hidden_items.split(',') if item_id.isdigit()]
+#
+#         quantities = request.POST.getlist('quantities')
+#         prices = request.POST.getlist('prices')
+#
+#         # Combine item IDs with their respective quantities
+#         items_and_quantities = [(item_id, quantity) for item_id, quantity in zip(item_ids, quantities) if
+#                                 item_id and quantity]
+#         items_and_prices = [(item_id, price) for item_id, price in zip(item_ids, prices) if
+#                                 item_id and price]
+#
+#         print("Filtered items and quantities:", items_and_quantities)
+#         print("Filtered items and prices:", items_and_prices)
+#
+#         if not items_and_quantities:
+#             parties = Parties.objects.all()
+#             items = Item.objects.all()
+#             messages.error(request, 'Please select items and quantities.')  # Use messages framework
+#
+#             return render(request, 'create_purchase.html', {
+#                 'error': 'Please select items and quantities.',
+#                 'parties': parties,
+#                 'items': items
+#             })
+#
+#         total_amount = 0
+#         total_tax = 0
+#         total_discount = 0
+#
+#         # Process each valid item and its quantity
+#         for item_id, quantity in items_and_quantities:
+#             item = get_object_or_404(Item, id=item_id)  # Ensure item_id is an integer
+#             quantity = int(quantity)
+#
+#             if item.stock_level < quantity:
+#                 continue  # Skip this item and move to the next one
+#
+#             discount_amount = item.price * item.discount_rate / 100
+#             discounted_price = item.price - discount_amount  # Price after discount
+#             tax_amount = discounted_price * item.tax_rate / 100
+#
+#             print(f"Item: {item.name}, Price: {item.price}, Discount: {discount_amount}, Tax: {tax_amount}")
+#
+#             subtotal = (discounted_price + tax_amount) * quantity
+#             total_amount += subtotal
+#             total_tax += tax_amount * quantity
+#             total_discount += discount_amount * quantity
+#             PurchaseItem.objects.create(purchase=purchase, item=item, quantity=quantity)
+#             # ... your existing sale logic ...
+#             item.stock_level -= quantity  # Decrease stock level
+#             item.save()
+#
+#
+#
+#         print("Total Amount:", total_amount)
+#         print("Total Tax:", total_tax)
+#         print("Total Discount:", total_discount)
+#
+#         # Update the bill totals
+#         purchase.total_amount = total_amount
+#         purchase.total_tax = total_tax
+#         purchase.total_discount = total_discount
+#         purchase.save()
+#
+#         return redirect(reverse('view_purchase', kwargs={'purchase_id': purchase.id}))
+#
+#     # GET request handling
+#     parties = Parties.objects.all()
+#     items = Item.objects.all()
+#     return render(request, 'create_purchase.html', {'parties': parties, 'items': items})
+
+# def create_purchase(request):
+#     if request.method == "POST":
+#         print("Received form data:", request.POST)
+#
+#         party_id = request.POST.get('party')
+#
+#         if not party_id:
+#             # Handle missing party selection error
+#             parties = Parties.objects.all()
+#             items = Item.objects.all()
+#             return render(request, 'create_purchase.html', {
+#                 'error': 'Please select a party.',
+#                 'parties': parties,
+#                 'items': items
+#             })
+#
+#         # Get the selected party
+#         party = get_object_or_404(Parties, id=party_id)
+#         print("Selected party:", party)
+#
+#         # Create a new Purchase record
+#         purchase = Purchase.objects.create(
+#             party=party,
+#             total_amount=0,
+#             total_tax=0,
+#             total_discount=0
+#         )
+#
+#         # Get hidden item IDs and validate
+#         hidden_items = request.POST.get('hidden_items', '')
+#         item_ids = [int(item_id) for item_id in hidden_items.split(',') if item_id.isdigit()]
+#
+#         # Retrieve corresponding input lists from POST request
+#         quantities = request.POST.getlist('quantity[]')
+#         prices = request.POST.getlist('price[]')
+#         tax_rates = request.POST.getlist('tax[]')
+#         discount_rates = request.POST.getlist('discount[]')
+#
+#         # Validate item selection and quantity entry
+#         if not item_ids or not quantities:
+#             parties = Parties.objects.all()
+#             items = Item.objects.all()
+#             messages.error(request, 'Please select items and quantities.')
+#             return render(request, 'create_purchase.html', {
+#                 'error': 'Please select items and quantities.',
+#                 'parties': parties,
+#                 'items': items
+#             })
+#
+#         # Calculate totals and add entries to PurchaseItems table
+#         total_amount = 0
+#         total_tax = 0
+#         total_discount = 0
+#
+#         for i, item_id in enumerate(item_ids):
+#             item = get_object_or_404(Item, id=item_id)
+#             quantity = int(quantities[i])
+#             price = float(prices[i])
+#             tax_rate = float(tax_rates[i])
+#             discount_rate = float(discount_rates[i])
+#
+#             # Calculate discounted price and tax
+#             discounted_price = price * (1 - discount_rate / 100)
+#             total_price_with_tax = discounted_price * (1 + tax_rate / 100)
+#
+#             # Calculate subtotal and update totals
+#             subtotal = total_price_with_tax * quantity
+#             total_amount += subtotal
+#             total_tax += (price * (tax_rate / 100)) * quantity
+#             total_discount += (price * (discount_rate / 100)) * quantity
+#
+#             # Create a PurchaseItems record
+#             PurchaseItem.objects.create(
+#                 purchase=purchase,
+#                 item=item,
+#                 quantity=quantity,
+#                 price=price,
+#                 tax=tax_rate,
+#                 discount=discount_rate,
+#                 subtotal=subtotal
+#             )
+#
+#         # Update the Purchase record with calculated totals
+#         purchase.total_amount = total_amount
+#         purchase.total_tax = total_tax
+#         purchase.total_discount = total_discount
+#         purchase.save()
+#
+#         messages.success(request, 'Purchase created successfully!')
+#         return redirect('view_purchases')  # Redirect to view purchases page
+#
+#     # GET request: Render form with parties and items
+#     parties = Parties.objects.all()
+#     items = Item.objects.all()
+#     return render(request, 'create_purchase.html', {'parties': parties, 'items': items})
+
+
+
+
 def create_purchase(request):
     if request.method == "POST":
         print("Received form data:", request.POST)
 
+        # Get the selected party
         party_id = request.POST.get('party')
         if not party_id:
             parties = Parties.objects.all()
@@ -401,86 +588,92 @@ def create_purchase(request):
         party = get_object_or_404(Parties, id=party_id)
         print("Selected party:", party)
 
-        purchase = Purchase.objects.create(party=party, total_amount=0, total_tax=0, total_discount=0)
+        # Create a new Purchase record
+        purchase = Purchase.objects.create(
+            party=party,
+            total_amount=0,
+            total_tax=0,
+            total_discount=0
+        )
 
-        # Retrieve hidden items and convert to list of integers
+        # Get hidden item IDs and validate
         hidden_items = request.POST.get('hidden_items', '')
         item_ids = [int(item_id) for item_id in hidden_items.split(',') if item_id.isdigit()]
 
+        # Retrieve corresponding input lists from POST request
         quantities = request.POST.getlist('quantities')
+        prices = request.POST.getlist('price')
+        tax_rates = request.POST.getlist('tax')
+        discount_rates = request.POST.getlist('discount')
 
-        # Combine item IDs with their respective quantities
-        items_and_quantities = [(item_id, quantity) for item_id, quantity in zip(item_ids, quantities) if
-                                item_id and quantity]
-
-        print("Filtered items and quantities:", items_and_quantities)
-
-        if not items_and_quantities:
+        # Validate item selection and quantity entry
+        if not item_ids or not quantities:
             parties = Parties.objects.all()
             items = Item.objects.all()
-            messages.error(request, 'Please select items and quantities.')  # Use messages framework
-
+            messages.error(request, 'Please select items and quantities.')
             return render(request, 'create_purchase.html', {
                 'error': 'Please select items and quantities.',
                 'parties': parties,
                 'items': items
             })
 
+        # Calculate totals and add entries to PurchaseItems table
         total_amount = 0
         total_tax = 0
         total_discount = 0
 
-        # Process each valid item and its quantity
-        for item_id, quantity in items_and_quantities:
-            item = get_object_or_404(Item, id=item_id)  # Ensure item_id is an integer
-            quantity = int(quantity)
+        for i, item_id in enumerate(item_ids):
+            item = get_object_or_404(Item, id=item_id)
+            quantity = int(quantities[i])
+            price = float(prices[i])
+            tax_rate = float(tax_rates[i])
+            discount_rate = float(discount_rates[i])
 
-            if item.stock_level < quantity:
-                continue  # Skip this item and move to the next one
 
-            discount_amount = item.price * item.discount_rate / 100
-            discounted_price = item.price - discount_amount  # Price after discount
-            tax_amount = discounted_price * item.tax_rate / 100
-
-            print(f"Item: {item.name}, Price: {item.price}, Discount: {discount_amount}, Tax: {tax_amount}")
-
-            subtotal = (discounted_price + tax_amount) * quantity
+            # Calculate discounted price and tax
+            discounted_price = price * (1 - discount_rate / 100)
+            total_price_with_tax = discounted_price * (1 + tax_rate / 100)
+            #
+            # # Calculate subtotal and update totals
+            subtotal = total_price_with_tax * quantity
             total_amount += subtotal
-            total_tax += tax_amount * quantity
-            total_discount += discount_amount * quantity
-            PurchaseItem.objects.create(purchase=purchase, item=item, quantity=quantity)
-            # ... your existing sale logic ...
-            item.stock_level -= quantity  # Decrease stock level
-            item.save()
+            total_tax += (price * (tax_rate / 100)) * quantity
+            total_discount += (price * (discount_rate / 100)) * quantity
 
+            # Create a PurchaseItem record
+            PurchaseItem.objects.create(
+                purchase=purchase,
+                item=item,
+                quantity=quantity,
+                price=price,
+                tax=tax_rate,
+                discount=discount_rate,
+                subtotal=subtotal
+            )
 
-
-        print("Total Amount:", total_amount)
-        print("Total Tax:", total_tax)
-        print("Total Discount:", total_discount)
-
-        # Update the bill totals
+        # Update the Purchase record with calculated totals
         purchase.total_amount = total_amount
         purchase.total_tax = total_tax
         purchase.total_discount = total_discount
         purchase.save()
 
-        return redirect(reverse('view_purchase', kwargs={'purchase_id': purchase.id}))
+        messages.success(request, 'Purchase created successfully!')
+        return redirect('view_purchases')  # Redirect to view purchases page
 
-    # GET request handling
+    # GET request: Render form with parties and items
     parties = Parties.objects.all()
     items = Item.objects.all()
     return render(request, 'create_purchase.html', {'parties': parties, 'items': items})
 
-# def view_purchase(request, purchase_id):
-#         purchase = get_object_or_404(Purchase, id=purchase_id)
-#         purchase_items = PurchaseItem.objects.filter(purchase=purchase)  # Get all items for the bill
-#
-#         context = {
-#             'purchase': purchase,
-#             'purchase_items': purchase_items,
-#         }
-#         return render(request, 'create_purchase.html', context)
+def view_purchase(request, purchase_id):
+        purchase = get_object_or_404(Purchase, id=purchase_id)
+        purchase_items = PurchaseItem.objects.filter(purchase=purchase)  # Get all items for the bill
+
+        context = {
+            'purchase': purchase,
+            'purchase_items': purchase_items,
+        }
+        return render(request, 'create_purchase.html', context)
 
 
 

@@ -31,7 +31,7 @@ urlpatterns = [
     path('view_bill/<int:bill_id>/', views.view_bill, name='view_bill'),
     # Path for viewing a specific bill (e.g., after saving)
     # path('bill/<int:bill_id>/', views.view_bill, name='view_bill'),
-    # path('view_purchase/<int:purchase_id>/', views.view_purchase, name='view_purchase'),
+    path('view_purchase/<int:purchase_id>/', views.view_purchase, name='view_purchase'),
     path('create_purchase/', views.create_purchase, name='create_purchase'),
 
     # Path for downloading a bill as a PDF
