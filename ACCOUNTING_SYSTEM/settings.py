@@ -77,7 +77,7 @@ WSGI_APPLICATION = 'ACCOUNTING_SYSTEM.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE':'django.db.backends.postgresql',
-        'NAME':'ACCOUNTING',  # Use the exact name of the database
+        'NAME':'accounting_system_mini',  # Use the exact name of the database
         'USER':'postgres',  # Your PostgreSQL user
         'PASSWORD':'1234',  # Your PostgreSQL password
         'HOST':'localhost',

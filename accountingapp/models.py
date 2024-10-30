@@ -15,6 +15,7 @@ class Profile(models.Model):
 
 
 class Category(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE,default=1)
     name = models.CharField(max_length=100)  # Field for category name
     created_at = models.DateTimeField(auto_now_add=True)  # Field to store when the category was created
 
@@ -23,6 +24,7 @@ class Category(models.Model):
 
 
 class Parties(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE,default=1)
     name = models.CharField(max_length=100)
     phone_number = models.CharField(max_length=15)
 
@@ -32,6 +34,7 @@ class Parties(models.Model):
 
 
 class Item(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE,default=1)
     name = models.CharField(max_length=100)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
@@ -50,6 +53,7 @@ class Item(models.Model):
 
 
 class Bill(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE,default=1)
     party = models.ForeignKey(Parties, on_delete=models.CASCADE)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, null=False)
     total_tax = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
@@ -65,11 +69,14 @@ class BillItem(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2,default=0.00)
     tax_rate = models.DecimalField(max_digits=5, decimal_places=2,default=0.00)  # Changed field name
     discount_rate = models.DecimalField(max_digits=5, decimal_places=2,default=0.00)  # Changed field name
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
 
 
 
 
 class Purchase(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE,default=1)
     party = models.ForeignKey(Parties, on_delete=models.CASCADE)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     total_tax = models.DecimalField(max_digits=10, decimal_places=2)

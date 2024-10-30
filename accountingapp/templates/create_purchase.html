@@ -295,18 +295,17 @@
 
     // Update subtotal function
     function updateSubtotal(row) {
-        let price = parseFloat(row.cells[3].getElementsByTagName('input')[0].value);
-        let quantity = parseInt(row.cells[2].getElementsByTagName('input')[0].value);
-        let tax = parseFloat(row.cells[4].getElementsByTagName('input')[0].value);
-        let subtotal = calculateSubtotal(price, quantity, tax, discount);  // Calculate subtotal
+    let priceInput = row.getElementsByTagName('input')[1];
+    let quantityInput = row.getElementsByTagName('input')[0];
+    let taxInput = row.getElementsByTagName('input')[2];
+    let discountInput = row.getElementsByTagName('input')[3];
+    let subtotalCell = row.cells[6]; // Subtotal cell
 
-            // Update subtotal cell
-        row.getElementsByTagName('td')[6].textContent = subtotal.toFixed(2);
+    let subtotal = calculateSubtotal(priceInput.value, quantityInput.value, taxInput.value, discountInput.value);
+    subtotalCell.textContent = subtotal.toFixed(2);
 
-            // Update the total amount
-        updateTotal();
-
-    }
+    updateTotal();
+}
 
      // Update the total amount
     function updateTotal() {
@@ -317,6 +316,18 @@
         }
         document.getElementById('total-amount').textContent = total.toFixed(2); // Update total amount
     }
+    function calculateSubtotal(price, quantity, tax, discount) {
+    let priceFloat = parseFloat(price) || 0;
+    let quantityFloat = parseFloat(quantity) || 0;
+    let taxFloat = parseFloat(tax) || 0;
+    let discountFloat = parseFloat(discount) || 0;
+
+    let discountAmount = priceFloat * (discountFloat / 100);
+    let discountedPrice = priceFloat - discountAmount;
+    let taxAmount = discountedPrice * (taxFloat / 100);
+
+    return (discountedPrice + taxAmount) * quantityFloat;
+}
     
 </script>
 </body>

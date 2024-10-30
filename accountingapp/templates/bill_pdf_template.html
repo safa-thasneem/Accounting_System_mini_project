@@ -129,7 +129,7 @@
                 <td>{{ item.item.price|floatformat:2 }}</td>
                 <td>{{ item.item.tax_rate }}%</td>
                 <td>{{ item.item.discount_rate }}%</td>
-                <td>{{ bill.total_amount }}</td>
+                <td>{{ item.subtotal|floatformat:2 }}</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -158,8 +158,8 @@
     <!-- Buttons -->
     <div style="text-align: center;">
         <button type="button" onclick="window.print()">Print Bill</button>
-        <a href="{% url 'download_bill_pdf' bill.id %}">
-            <button type="button">Download PDF</button>
+        <a href="{% url 'create_bill' %}">
+            <button type="button">Add another bill</button>
         </a>
     </div>
 </div>

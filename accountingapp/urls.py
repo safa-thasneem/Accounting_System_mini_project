@@ -24,27 +24,20 @@ urlpatterns = [
     path('parties/delete/<int:pk>/', views.delete_party, name='delete_party'),
     path('billings/add/', views.create_bill, name='create_bill'),
     path('create_purchase/', views.create_purchase, name='create_purchase'),
-    path('purchase/update/<int:pk>/', views.update_purchase, name='update_purchase'),
-    path('purchase/delete/<int:pk>/', views.delete_purchase, name='delete_purchase'),
-    # path('bill/create/', views.create_bill, name='create_bill'),
     path('create_bill/', views.create_bill, name='create_bill'),
     path('view_bill/<int:bill_id>/', views.view_bill, name='view_bill'),
-    # Path for viewing a specific bill (e.g., after saving)
-    # path('purchase/<int:purchase_id>/', views.view_purchase, name='view_purchase'),
 
     path('create_purchase/', views.create_purchase, name='create_purchase'),
     path('purchase_success/', views.purchase_success, name='purchase_success'),
 
-    # Path for downloading a bill as a PDF
     path('download_bill_pdf/<int:bill_id>/', views.download_bill_pdf, name='download_bill_pdf'),
     path('download_bill_pdf/<int:bill_id>/pdf/', views.download_bill_pdf, name='download_purchase_pdf'),
 
     path('reports/', views.report, name='report'),
-    path('report/purchase/', views.purchase_report, name='purchase_report'),  # Ensure this URL pattern exists
     path('sales-report/', views.sales_report_view, name='sales_report_view'),
     path('purchase-report/', views.purchase_report_view, name='purchase_report_view'),
     path('sales-report/', views.purchase_report_view, name='sales_report_view'),
-    path('edit-bill/<int:id>/', views.edit_bill, name='edit_bill'),
+    path('edit-bill/<int:bill_id>/', views.edit_bill, name='edit_bill'),
     path('search-party/', views.search_party, name='search_party'),
     path('search-item/', views.search_item, name='search_item'),
     path('stock-level/',views.check_low_stock,name='check_low_stock'),
