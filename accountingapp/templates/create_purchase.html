@@ -328,7 +328,14 @@
 
     return (discountedPrice + taxAmount) * quantityFloat;
 }
-    
+    // Remove item from table
+    function removeItemFromTable(row) {
+        let itemId = row.getAttribute('id').split('-')[2];  // Get item ID from row ID
+        selectedItemIds = selectedItemIds.filter(id => id !== itemId);  // Remove item ID from selected items
+        row.parentNode.removeChild(row);  // Remove the row
+        updateTotal();  // Update total
+        updateHiddenItemsInput();  // Update hidden input
+    }
 </script>
 </body>
 </html>

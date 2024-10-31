@@ -2,6 +2,7 @@ import csv
 from datetime import datetime
 import logging
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 
 from decimal import Decimal
@@ -32,14 +33,16 @@ import pdfkit  # You can also use xhtml2pdf, WeasyPrint, etc.
 def home(request):
     return render(request, 'home.html')  # Home template
 
+@login_required
 def dashboard(request):
 
     return render(request, 'base.html')
 
+@login_required
 def dashboard_view(request):
     # Aggregate data by year instead of day-by-day
-    sales = Bill.objects.annotate(year=ExtractYear('created_at')).values('year').annotate(total=Sum('total_amount'))
-    purchases = Purchase.objects.annotate(year=ExtractYear('created_at')).values('year').annotate(total=Sum('total_amount'))
+    sales = Bill.objects.filter(user=request.user).annotate(year=ExtractYear('created_at')).values('year').annotate(total=Sum('total_amount'))
+    purchases = Purchase.objects.filter(user=request.user).annotate(year=ExtractYear('created_at')).values('year').annotate(total=Sum('total_amount'))
 
     # Process the data
     sales_data = [float(sale['total']) for sale in sales]
@@ -73,6 +76,7 @@ def register(request):
 
     return render(request, 'register.html', {'form': form})
 
+
 def login_view(request):
     if request.method == 'POST':
         username = request.POST['username']
@@ -91,21 +95,23 @@ def logout_view(request):
     logout(request)
     return redirect('/')
 
+@login_required
 def item_list(request):
     search_query = request.GET.get('search', '')  # Get the search query from the request
     if search_query:
-        items = Item.objects.filter(name__icontains=search_query)  # Filter items based on the search query
+        items = Item.objects.filter(user=request.user,name__icontains=search_query)  # Filter items based on the search query
     else:
-        items = Item.objects.all()  # If no search, display all items
+        items = Item.objects.filter(user=request.user)  # If no search, display all items
 
     return render(request, 'item_list.html', {'items': items})
 
+@login_required
 def add_item(request):
     if request.method == 'POST':
         form = ItemForm(request.POST)
         if form.is_valid():
             item = form.save(commit=False)
-
+            item.user = request.user
             item.save()
             return redirect('item_list')
     else:
@@ -114,8 +120,9 @@ def add_item(request):
     return render(request, 'add_item.html', {'form': form})
 
 # View to update item
+@login_required
 def update_item(request, pk):
-    item = get_object_or_404(Item, pk=pk)
+    item = get_object_or_404(Item, pk=pk,user=request.user)
     if request.method == 'POST':
         form = ItemForm(request.POST, instance=item)
         if form.is_valid():
@@ -128,24 +135,26 @@ def update_item(request, pk):
 
 # View to delete item
 def delete_item(request, pk):
-    item = get_object_or_404(Item, pk=pk)
+    item = get_object_or_404(Item, pk=pk,user=request.user)
     if request.method == 'POST':
         item.delete()
         return redirect('item_list')
     return render(request, 'delete_item.html', {'item': item})
 
+@login_required
 def add_category(request):
     if request.method == 'POST':
         form = CategoryForm(request.POST)
         if form.is_valid():
-
-
-            form.save()  # Save the category to the database
+            category = form.save(commit=False)  # Get the form instance without saving to the database yet
+            category.user = request.user  # Assign the logged-in user to the category
+            category.save()  # Save the category to the database
             return redirect('category_list')  # Redirect to the category list page after saving
     else:
         form = CategoryForm()
     return render(request, 'add_category.html', {'form': form})
 
+@login_required
 def update_category(request, pk):
     category = get_object_or_404(Category, pk=pk,user=request.user)
     if request.method == 'POST':
@@ -158,21 +167,22 @@ def update_category(request, pk):
 
     return render(request, 'update_category.html', {'form': form})
 
+@login_required
 def delete_category(request, pk):
-    category = get_object_or_404(Category, pk=pk)
+    category = get_object_or_404(Category, pk=pk,user=request.user)
     if request.method == 'POST':
         category.delete()
         return redirect('category_list')
 
     return render(request, 'delete_category.html', {'category': category})
 
-
+@login_required
 def category_list(request):
-    categories = Category.objects.all()  # Retrieve all categories from the database
+    categories = Category.objects.filter(user=request.user)  # Retrieve all categories from the database
     return render(request, 'category_list.html', {'categories': categories})
 
 
-
+@login_required
 def party_list(request):
     # parties = Parties.objects.all()
     # Assuming your model is named Parties
@@ -183,26 +193,28 @@ def party_list(request):
             parties = Parties.objects.filter(name__icontains=search_query) | Parties.objects.filter(
                 phone_number__icontains=search_query,user=request.user)
         else:
-            parties = Parties.objects.all()  # If no search, display all parties
+            parties = Parties.objects.filter(user=request.user)  # If no search, display all parties
 
 
         return render(request, 'party_list.html', {'parties': parties})
 
+@login_required
 def add_party(request):
     if request.method == 'POST':
         form = PartyForm(request.POST)
         if form.is_valid():
-
-
-            form.save()
-            return redirect('party_list')
+            party = form.save(commit=False)  # Save form without committing to the database yet
+            party.user = request.user  # Assign the logged-in user to the party
+            party.save()
+        return redirect('party_list')
     else:
         form = PartyForm()
     return render(request, 'add_party.html', {'form': form})
 
 # Update a party
+@login_required
 def update_party(request, pk):
-    party = get_object_or_404(Parties, pk=pk)
+    party = get_object_or_404(Parties, pk=pk, user=request.user)
     if request.method == 'POST':
         form = PartyForm(request.POST, instance=party)
         if form.is_valid():
@@ -213,8 +225,9 @@ def update_party(request, pk):
     return render(request, 'update_party.html', {'form': form})
 
 # Delete a party
+@login_required
 def delete_party(request, pk):
-    party = get_object_or_404(Parties, pk=pk)
+    party = get_object_or_404(Parties, pk=pk,user=request.user)
     if request.method == 'POST':
         party.delete()
         return redirect('party_list')
@@ -222,45 +235,37 @@ def delete_party(request, pk):
 
 logger = logging.getLogger(__name__)
 
-
-
-
+@login_required
 def create_bill(request):
     if request.method == "POST":
         print("Received form data:", request.POST)
 
         party_id = request.POST.get('party')
         if not party_id:
-            parties = Parties.objects.all()
-            items = Item.objects.all()
+            parties = Parties.objects.filter(user=request.user)
+            items = Item.objects.filter(user=request.user)
             return render(request, 'create_bill.html', {
                 'error': 'Please select a party.',
                 'parties': parties,
                 'items': items
             })
 
-        party = get_object_or_404(Parties, id=party_id)
+        party = get_object_or_404(Parties, id=party_id,user=request.user)
         print("Selected party:", party)
 
         bill = Bill.objects.create(party=party, total_amount=0, total_tax=0, total_discount=0)
-
         # Retrieve hidden items and convert to list of integers
         hidden_items = request.POST.get('hidden_items', '')
         item_ids = [int(item_id) for item_id in hidden_items.split(',') if item_id.isdigit()]
-
         quantities = request.POST.getlist('quantities')
-
         # Combine item IDs with their respective quantities
         items_and_quantities = [(item_id, quantity) for item_id, quantity in zip(item_ids, quantities) if
                                 item_id and quantity]
-
         print("Filtered items and quantities:", items_and_quantities)
-
         if not items_and_quantities:
-            parties = Parties.objects.all()
+            parties = Parties.objects.filter(user=request.user)
             items = Item.objects.all()
             messages.error(request, 'Please select items and quantities.')  # Use messages framework
-
             return render(request, 'create_bill.html', {
                 'error': 'Please select items and quantities.',
                 'parties': parties,
@@ -317,12 +322,12 @@ def create_bill(request):
         bill.save()
 
         return redirect(reverse('view_bill', kwargs={'bill_id': bill.id}))
-
     # GET request handling
-    parties = Parties.objects.all()
-    items = Item.objects.all()
+    parties = Parties.objects.filter(user=request.user)
+    items = Item.objects.filter(user=request.user)
     return render(request, 'create_bill.html', {'parties': parties, 'items': items})
 
+@login_required
 def view_bill(request, bill_id):
     bill = get_object_or_404(Bill, id=bill_id)
     bill_items = BillItem.objects.filter(bill=bill)  # Get all items for the bill
@@ -336,6 +341,7 @@ def view_bill(request, bill_id):
 
 
 #  Generate and download PDF
+@login_required
 def download_bill_pdf(request,bill_id):
     bill = Bill.objects.get(id=bill_id,user=request.user)
     bill_items = BillItem.objects.filter(bill=bill)
@@ -354,9 +360,9 @@ def download_bill_pdf(request,bill_id):
     if pisa_status.err:
         return HttpResponse('Error creating PDF', status=400)
 
-
+@login_required
 def edit_bill(request, bill_id):
-    bill = get_object_or_404(Bill, id=bill_id)
+    bill = get_object_or_404(Bill, id=bill_id,user=request.user)
     bill_items = BillItem.objects.filter(bill=bill)
 
     if request.method == "POST":
@@ -368,7 +374,7 @@ def edit_bill(request, bill_id):
             messages.error(request, 'Please select an item and a quantity.')
             return redirect('edit_bill', bill_id=bill.id)
 
-        item = get_object_or_404(Item, id=item_id, user=request.user)
+        item = get_object_or_404(Item, id=item_id)
         quantity = int(quantity)
 
         if item.stock_level < quantity:
@@ -406,8 +412,8 @@ def edit_bill(request, bill_id):
         return redirect('view_bill', bill_id=bill.id)
 
     # GET request handling
-    parties = Parties.objects.all()
-    items = Item.objects.all()
+    parties = Parties.objects.filter(user=request.user)
+    items = Item.objects.filter(user=request.user)
     return render(request, 'edit_bill.html', {
         'bill': bill,
         'bill_items': bill_items,
@@ -416,7 +422,7 @@ def edit_bill(request, bill_id):
     })
 
 #
-
+@login_required
 def create_purchase(request):
     if request.method == "POST":
         print("Received form data:", request.POST)
@@ -424,8 +430,8 @@ def create_purchase(request):
         # Get the selected party
         party_id = request.POST.get('party')
         if not party_id:
-            parties = Parties.objects.all()
-            items = Item.objects.all()
+            parties = Parties.objects.filter(user=request.user)
+            items = Item.objects.filter(user=request.user)
             return render(request, 'create_purchase.html', {
                 'error': 'Please select a party.',
                 'parties': parties,
@@ -461,8 +467,8 @@ def create_purchase(request):
 
         # Validate item selection and quantity entry
         if not items_and_details:
-            parties = Parties.objects.all()
-            items = Item.objects.all()
+            parties = Parties.objects.filter(user=request.user)
+            items = Item.objects.filter(user=request.user)
             messages.error(request, 'Please select items and .')
             return render(request, 'create_purchase.html', {
                 'error': 'Please select items and .',
@@ -522,10 +528,11 @@ def create_purchase(request):
         return redirect('purchase_success')  # Redirect to view purchases page
 
     # GET request: Render form with parties and items
-    parties = Parties.objects.all()
-    items = Item.objects.all()
+    parties = Parties.objects.filter(user=request.user)
+    items = Item.objects.filter(user=request.user)
     return render(request, 'create_purchase.html', {'parties': parties, 'items': items})
 
+@login_required
 def purchase_success(request):
     return render(request, 'purchase_success.html',{'purchase success':purchase_success})
 
@@ -534,15 +541,16 @@ def purchase_success(request):
 
 
 #     return response
+@login_required
 def report(request):
     return render(request, 'reports.html')
 
-
+@login_required
 def sales_report_view(request):
     start_date = request.GET.get('start_date', None)
     end_date = request.GET.get('end_date', None)
 
-    bills = Bill.objects.all()  # Default to all bills if no filters applied
+    bills = Bill.objects.filter(user=request.user)  # Default to all bills if no filters applied
 
     try:
         if start_date and end_date:
@@ -551,7 +559,7 @@ def sales_report_view(request):
             end_date = datetime.strptime(end_date, '%Y-%m-%d').replace(hour=23, minute=59, second=59)
 
             # Filter bills within the date range (inclusive)
-            bills = Bill.objects.filter(created_at__range=[start_date, end_date])
+            bills = Bill.objects.filter(created_at__range=[start_date, end_date],user=request.user)
 
         # Calculate total sales
         total_sales = bills.aggregate(total_sales=Sum('total_amount'))['total_sales'] or 0
@@ -571,12 +579,12 @@ def sales_report_view(request):
     return render(request, 'sales_report.html', context)
 
 
-
+@login_required
 def purchase_report_view(request):
     start_date = request.GET.get('start_date', None)
     end_date = request.GET.get('end_date', None)
 
-    purchases = Purchase.objects.all()  # Default to all bills if no filters applied
+    purchases = Purchase.objects.filter(user=request.user)  # Default to all bills if no filters applied
 
     try:
         if start_date and end_date:
@@ -585,7 +593,7 @@ def purchase_report_view(request):
             end_date = datetime.strptime(end_date, '%Y-%m-%d').replace(hour=23, minute=59, second=59)
 
             # Filter bills within the date range (inclusive)
-            purchases = Purchase.objects.filter(created_at__range=[start_date, end_date])
+            purchases = Purchase.objects.filter(created_at__range=[start_date, end_date],user=request.user)
 
         # Calculate total sales
         total_purchases = purchases.aggregate(total_purchases=Sum('total_amount'))['total_purchases'] or 0
@@ -605,11 +613,11 @@ def purchase_report_view(request):
     return render(request, 'purchase_report.html', context)
 
 
-
+@login_required
 def search_party(request):
     query = request.GET.get('q', '')
     if query:
-        parties = Parties.objects.filter(name__icontains=query)
+        parties = Parties.objects.filter(name__icontains=query,user=request.user)
     else:
         parties = Parties.objects.none()
 
@@ -618,41 +626,41 @@ def search_party(request):
 
 
 # Item search view
+@login_required
 def search_item(request):
     query = request.GET.get('q', '')
     if query:
-        items = Item.objects.filter(name__icontains=query)
+        items = Item.objects.filter(name__icontains=query,user=request.user)
     else:
         items = Item.objects.none()
 
     results = [{'id': item.id, 'name': item.name, 'price': item.price} for item in items]
     return JsonResponse({'results': results})
 
-
+@login_required
 def filter_parties(request):
     search_term = request.GET.get('q', '')
-    parties = Parties.objects.filter(name__icontains=search_term).values('id', 'name')
+    parties = Parties.objects.filter(name__icontains=search_term,user=request.user).values('id', 'name')
     return JsonResponse(list(parties), safe=False)
 
+@login_required
 def filter_items(request):
     search_term = request.GET.get('q', '')
-    items = Item.objects.filter(name__icontains=search_term).values('id', 'name', 'price', 'tax_rate', 'discount_rate')
+    items = Item.objects.filter(name__icontains=search_term,user=request.user).values('id', 'name', 'price', 'tax_rate', 'discount_rate')
     return JsonResponse(list(items), safe=False)
 
-def add_purchase(request):
-    if request.method == 'POST':
-        # Handle form data and save to the purchase and purchase_items tables
-        ...
-
+@login_required
 def check_low_stock(request):
-    low_stock_items = Item.objects.filter(stock_level__lt=F('low_stock_threshold'))
+    low_stock_items = Item.objects.filter(stock_level__lt=F('low_stock_threshold'),user=request.user)
     return render(request, 'low_stock_alert.html', {'low_stock_items': low_stock_items})
 
-
+@login_required
 def profit_loss_report(request):
     # Fetch total sales and total purchases
-    total_sales = Bill.objects.aggregate(total=Sum('total_amount'))['total'] or 0
-    total_purchases = Purchase.objects.aggregate(total=Sum('total_amount'))['total'] or 0
+     # Default to all bills if no filters applied
+
+    total_sales = Bill.objects.filter(user=request.user).aggregate(total=Sum('total_amount'))['total'] or 0
+    total_purchases = Purchase.objects.filter(user=request.user).aggregate(total=Sum('total_amount'))['total'] or 0
 
     profit = total_sales - total_purchases
     loss = abs(profit) if profit < 0 else 0

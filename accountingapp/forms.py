@@ -1,5 +1,8 @@
+import re
+
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
+from django.core.exceptions import ValidationError
 
 from .models import User, Profile, Item, Category, Parties, Purchase, Bill, BillItem
 
@@ -53,15 +56,19 @@ class PartyForm(forms.ModelForm):
         model = Parties
         fields = ['name', 'phone_number']
 
-# class BillForm(forms.ModelForm):
-#     class Meta:
-#         model = Bill
-#         fields = ['party', 'total_amount', 'total_tax', 'total_discount']
+        def clean_name(self):
+            name = self.cleaned_data.get('name')
+            if not re.match("^[a-zA-Z\s]+$", name):
+                raise ValidationError("Name can only contain alphabetic characters and spaces.")
+            return name
 
-# class BillItemsForm(forms.ModelForm):
-#     class Meta:
-#         model = BillItem
-#         fields = ['item', 'quantity']
+        def clean_phone_number(self):
+            phone_number = self.cleaned_data.get('phone_number')
+            if not phone_number.isdigit():
+                raise ValidationError("Phone number must contain only numeric digits.")
+            return phone_number
+
+
 class BillForm(forms.ModelForm):
     class Meta:
         model = Bill
