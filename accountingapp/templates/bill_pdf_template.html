@@ -20,6 +20,13 @@
             border: 1px solid #ddd;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+        .shop-info {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 16px;
+            line-height: 1.4;
+            color: #333;
+        }
         h1 {
             text-align: center;
             font-size: 22px;
@@ -89,84 +96,84 @@
     </style>
 </head>
 <body>
-        <a href="{% url 'dashboard' %}">home</a>
+    <div class="container">
+        <!-- Shop Info -->
 
 
-<div class="container">
-    <!-- Bill Header -->
-    <h1>Invoice</h1>
+        <!-- Bill Header -->
+        <h1>Invoice</h1>
 
-    <!-- Bill Info Section -->
-    <h2>Bill Details</h2>
-    <table class="bill-details">
-        <tr>
-            <td><strong>Bill ID:</strong> {{ bill.id }}</td>
-            <td><strong>Party Name:</strong> {{ bill.party.name }}</td>
-            <td><strong>Date:</strong> {{ bill.created_at|date:"d/m/Y" }}</td>
-        </tr>
-    </table>
-
-    <!-- Item Details Section -->
-    <h2>Itemized Details</h2>
-    <table class="item-details">
-        <thead>
+        <!-- Bill Info Section -->
+        <h2>Bill Details</h2>
+        <table class="bill-details">
             <tr>
-                <th>No.</th>
-                <th>Item Name</th>
-                <th>Quantity</th>
-                <th>Unit Price</th>
-                <th>Tax (%)</th>
-                <th>Discount (%)</th>
-                <th>Total</th>
+                <td><strong>Bill ID:</strong> {{ bill.id }}</td>
+                <td><strong>Party Name:</strong> {{ bill.party.name }}</td>
+                <td><strong>Date:</strong> {{ bill.created_at|date:"d/m/Y" }}</td>
             </tr>
-        </thead>
-        <tbody>
-            {% for item in bill_items %}
+        </table>
+
+        <!-- Item Details Section -->
+        <h2>Itemized Details</h2>
+        <table class="item-details">
+            <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>Item Name</th>
+                    <th>Quantity</th>
+                    <th>Unit Price</th>
+                    <th>Tax (%)</th>
+                    <th>Discount (%)</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in bill_items %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ item.item.name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.item.price|floatformat:2 }}</td>
+                    <td>{{ item.item.tax_rate }}%</td>
+                    <td>{{ item.item.discount_rate }}%</td>
+                    <td>{{ item.subtotal|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Summary Section -->
+        <table class="summary-table">
             <tr>
-                <td>{{ forloop.counter }}</td>
-                <td>{{ item.item.name }}</td>
-                <td>{{ item.quantity }}</td>
-                <td>{{ item.item.price|floatformat:2 }}</td>
-                <td>{{ item.item.tax_rate }}%</td>
-                <td>{{ item.item.discount_rate }}%</td>
-                <td>{{ item.subtotal|floatformat:2 }}</td>
+                <td class="label">Subtotal:</td>
+                <td class="amount">{{ bill.total_amount|floatformat:2 }}</td>
             </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+            <tr>
+                <td class="label">Total Tax:</td>
+                <td class="amount">{{ bill.total_tax|floatformat:2 }}</td>
+            </tr>
+            <tr>
+                <td class="label">Total Discount:</td>
+                <td class="amount">{{ bill.total_discount|floatformat:2 }}</td>
+            </tr>
+            <tr>
+                <td class="label">Grand Total:</td>
+                <td class="amount">{{ bill.total_amount|floatformat:2 }}</td>
+            </tr>
+        </table>
 
-    <!-- Summary Section -->
-    <table class="summary-table">
-        <tr>
-            <td class="label">Subtotal:</td>
-            <td class="amount">{{ bill.total_amount|floatformat:2 }}</td>
-        </tr>
-        <tr>
-            <td class="label">Total Tax:</td>
-            <td class="amount">{{ bill.total_tax|floatformat:2 }}</td>
-        </tr>
-        <tr>
-            <td class="label">Total Discount:</td>
-            <td class="amount">{{ bill.total_discount|floatformat:2 }}</td>
-        </tr>
-        <tr>
-            <td class="label">Grand Total:</td>
-            <td class="amount">{{ bill.total_amount|floatformat:2 }}</td>
-        </tr>
-    </table>
-
-    <!-- Buttons -->
-    <div style="text-align: center;">
-        <button type="button" onclick="window.print()">Print Bill</button>
-        <a href="{% url 'create_bill' %}">
-            <button type="button">Add another bill</button>
-        </a>
+        <!-- Buttons -->
+        <div style="text-align: center;">
+            <button type="button" onclick="window.print()">Print Bill</button>
+            <a href="{% url 'create_bill' %}">
+                <button type="button">Add another bill</button>
+            </a>
+        </div>
     </div>
-</div>
 
-<footer>
-    <p>Thank you for your business!</p>
-</footer>
+    <footer>
+        <p>Thank you for your business!</p>
+    </footer>
 
 </body>
 </html>

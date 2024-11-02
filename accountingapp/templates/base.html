@@ -9,10 +9,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
-            background-color: #eef2f3; /* Light background for contrast */
+            background-image: url("{% static 'images/img_1.png' %}"); /* Add the path to your background image */
+            background-size: cover; /* Ensures the image covers the entire background */
+            background-position: center; /* Centers the image */
+            background-repeat: no-repeat; /* Prevents the image from repeating */
+            background-attachment: fixed; /* Keeps the image fixed during scrolling */
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow-x: hidden; /* Prevent horizontal scrolling */
+            overflow-x: hidden;
         }
+
 
         .wrapper {
             display: flex;
@@ -21,12 +26,12 @@
 
         .sidebar {
             width: 250px;
-            background-color: #7f8c8d; /* Dark sidebar */
+            background-color: #7f8c8d;
             padding-top: 20px;
             position: fixed;
             height: 100%;
             transition: transform 0.3s ease;
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2); /* Shadow for depth */
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
         }
 
         .sidebar.hide {
@@ -34,72 +39,56 @@
         }
 
         .sidebar .nav-link {
-            color: #ffffff; /* White text */
+            color: #ffffff;
             padding: 15px 20px;
-            display: flex; /* Flexbox for aligning icons */
-            align-items: center; /* Center items vertically */
+            display: flex;
+            align-items: center;
             font-size: 1.1rem;
-            transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transition */
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         .sidebar .nav-link i {
-            margin-right: 10px; /* Space between icon and text */
+            margin-right: 10px;
         }
 
         .sidebar .nav-link:hover {
-            background-color: #495057; /* Slightly lighter on hover */
-            color: #f8f9fa; /* Change text color on hover */
+            background-color: #495057;
+            color: #f8f9fa;
         }
 
         .sidebar .active {
             font-weight: bold;
-            background-color: #007bff; /* Highlight for active link */
+            background-color: #007bff;
         }
 
         .content {
-            margin-left: 250px; /* Default margin for the sidebar */
-            padding: 40px;
-            width: calc(100% - 250px); /* Adjust content width accordingly */
+            margin-left: 400px;
+            padding: 150px;
+            width: calc(100% - 500px);
             transition: margin-left 0.3s ease;
+            text-align-center;
         }
 
         .content.hided {
-            margin-left: 0; /* Adjust margin when sidebar is hidden */
-            width: 100%; /* Full width when sidebar is hidden */
-        }
-
-        .content h1 {
-            font-size: 2.5rem;
-            color: #343a40;
-        }
-
-        .content h2 {
-            font-size: 1.5rem;
-            margin-top: 20px;
-            color: #6c757d;
-        }
-
-        .content p {
-            font-size: 1.1rem;
-            color: #495057;
-            margin-bottom: 30px;
+            margin-left: 0;
+            width: 100%;
         }
 
         footer {
-            background-color: #f8f9fa; /* Light footer */
-            color: #343a40; /* Dark text for contrast */
+            background-color: #f8f9fa;
+            color: #343a40;
             padding: 8px 0;
             text-align: center;
-            width: calc(100% - 250px); /* Adjust footer width accordingly */
-            margin-left: 250px; /* Default margin for the sidebar */
-            position: fixed; /* Fixed footer */
-            bottom: 0; /* Stick to the bottom */
-            box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+            width: calc(100% - 250px);
+            margin-left: 250px;
+            position: fixed;
+            bottom: 0;
+            box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
         }
 
         footer.hided {
-            margin-left: 0; /* Adjust margin for footer when sidebar is hidden */
-            width: 100%; /* Full width when sidebar is hidden */
+            margin-left: 0;
+            width: 100%;
         }
 
         .menu-icon {
@@ -109,40 +98,33 @@
             cursor: pointer;
             color: #343a40;
             font-size: 1.5rem;
-            z-index: 1000; /* Ensure it appears above other elements */
+            z-index: 1000;
         }
 
-        .logo {
-            width: 80%;
-            margin: 0 auto;
-            display: block;
-            padding-bottom: 20px;
+        .navbar-logo {
+            display: flex;
+            align-items: center;
+
+            padding: 40px;
+            background-color: #1f618d;
+            color: white;
+            font-weight: bold;
+            border-radius: 10px;
         }
 
-        .project-name {
-            font-size: 1.3rem; /* Increase font size */
-            color: white; /* Highlight color (yellow) */
-            font-weight: bold; /* Bold font */
-            text-align: center; /* Center align */
-            padding: 15px 0; /* Add padding for spacing */
-            background-color: #1f618d; /* Background color for highlight */
-            border-radius: 5px; /* Rounded corners */
-            margin-top: 40px; /* Spacing below */
-
-            margin-bottom: 20px; /* Spacing below */
-            display: flex; /* Flexbox for icon alignment */
-            align-items: center; /* Center vertically */
-            justify-content: center; /* Center horizontally */
+        .navbar-logo img {
+            height: 40px;
+            width: auto;
+            margin-right: 10px;
         }
 
-        .project-name i {
-            margin-left: 10px; /* Space between text and icon */
-            cursor: pointer; /* Pointer cursor for hover effect */
+        .navbar-logo .project-name {
+            font-size: 1.4rem;
         }
+
     </style>
 </head>
 <body>
-
     <div class="wrapper">
         <!-- Hamburger Menu Icon -->
         <div class="menu-icon" onclick="toggleSidebar()">
@@ -151,8 +133,9 @@
 
         <!-- Sidebar -->
         <nav class="sidebar" id="sidebar">
-            <div class="project-name">
-                Accounting System
+            <div class="navbar-logo">
+                <img src="{% static 'images/img.png' %}" alt="Logo">
+                <span class="project-name">Accounting System</span>
             </div>
             <a class="nav-link" href="{% url 'dashboard_view' %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
             <a class="nav-link" href="{% url 'category_list' %}"><i class="fas fa-th-list"></i> Category</a>
@@ -167,8 +150,7 @@
         <!-- Main Content -->
         <div class="content" id="content">
             <h1>Welcome to the Accounting System</h1>
-            <h2>About Us</h2>
-            <p>Your one-stop solution for managing financial operations efficiently.</p>
+
         </div>
     </div>
 

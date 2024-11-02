@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,11 +13,146 @@
         canvas {
             background-color: #fff;
             border: 1px solid #ddd;
-            margin: 20px 0;
+            margin: 10px 0;
         }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+
+        /* Navbar Styles */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #2C3E50;
+            padding: 10px 20px;
+        }
+
+        .navbar-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .navbar-logo {
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar-logo img {
+            height: 40px;
+            margin-right: 10px;
+        }
+
+        .project-name {
+            color: #ecf0f1;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .navbar-links {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-link {
+            color: #ecf0f1;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+
+        .nav-link:hover {
+            background-color: #34495E;
+        }
+
+        .toggle-button {
+            display: none;
+            background: none;
+            border: none;
+            color: #ecf0f1;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Container Styles */
+        .container {
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .navbar-logo img {
+            height: 40px; /* Set height to control size */
+            width: auto; /* Maintains aspect ratio */
+            margin-right: 10px;
+        }
+        .navbar-logo {
+            display: flex;
+            align-items: center;
+        }
+        .navbar-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+
+        /* Responsive Table for Mobile */
+        @media (max-width: 768px) {
+            .navbar-logo img {
+                height: 30px;
+            }
+            .navbar-links {
+                display: none;
+                flex-direction: column;
+                gap: 10px;
+                position: absolute;
+                top: 60px;
+                right: 0;
+                background-color: #2C3E50;
+                width: 100%;
+                padding: 10px 0;
+            }
+
+            .navbar-links.active {
+                display: flex;
+            }
+
+            .toggle-button {
+                display: block;
+            }
+
     </style>
 </head>
 <body>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-logo">
+                <img src="{% static 'images/img.png' %}" alt="Logo">
+                <span class="project-name">Accounting System</span>
+            </div>
+            <div class="navbar-links">
+                <a href="{% url 'dashboard' %}" class="nav-link">Home</a>
+                <a href="{% url 'category_list' %}" class="nav-link">Category</a>
+                <a href="{% url 'item_list' %}" class="nav-link">Item</a>
+                <a href="{% url 'party_list' %}" class="nav-link">Parties</a>
+                <a href="{% url 'create_bill' %}" class="nav-link">Billing</a>
+                <a href="{% url 'create_purchase' %}" class="nav-link">Purchase</a>
+                <a href="{% url 'report' %}" class="nav-link">Reports</a>
+                <a href="{% url 'logout' %}" class="nav-link">Logout</a>
+            </div>
+            <button class="toggle-button" onclick="toggleNavbar()"><i class="fas fa-bars"></i></button>
+        </div>
+    </nav>
     <div id="dashboard">
         <h2>Sales and Purchases Report</h2>
         <canvas id="salesPurchaseChart" width="250" height="250"></canvas>
@@ -68,7 +204,7 @@
                 datasets: [{
                     label: 'Profit/Loss',
                     data: profitLossData,
-                    backgroundColor: 'rgb(92, 151, 255)',
+
                     borderColor: 'rgba(75, 192, 192, 1)',
                     borderWidth: 2,
                     fill: true,  // fill the area under the line

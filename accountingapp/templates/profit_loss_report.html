@@ -58,27 +58,29 @@
     </style>
 </head>
 <body>
-    <h1>Profit and Loss Report</h1>
-    <table>
-        <tr>
-            <th>Total Sales</th>
-            <td>${{ total_sales }}</td>
-        </tr>
-        <tr>
-            <th>Total Purchases</th>
-            <td>${{ total_purchases }}</td>
-        </tr>
-        <tr class="total-row">
-            <th>Profit</th>
-            <td class="profit">${{ profit }}</td>
-        </tr>
-        <tr class="total-row">
-            <th>Loss</th>
-            <td class="loss">${{ loss }}</td>
-        </tr>
+<a href="{% url 'report' %}">&larr; Back to Reports</a>
+    <h1>Monthly Profit/Loss Report</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Month</th>
+                <th>Total Sales</th>
+                <th>Total Purchases</th>
+                <th>Profit</th>
+                <th>Loss</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for data in report_data %}
+                <tr>
+                    <td>{{ data.month }}</td>
+                    <td>{{ data.sales }}</td>
+                    <td>{{ data.purchases }}</td>
+                    <td>{{ data.profit }}</td>
+                    <td>{{ data.loss }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
     </table>
-    <div class="summary">
-        <p>Analyze your financial performance and make informed decisions!</p>
-    </div>
 </body>
 </html>

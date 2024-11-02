@@ -1,37 +1,23 @@
+import calendar
 import csv
 from datetime import datetime
 import logging
-from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.urls import reverse
-
-from decimal import Decimal
-from lib2to3.fixes.fix_input import context
-from re import search
-
 from django.contrib import auth, messages
-from django.contrib.auth.models import User
-from django.db import transaction
 from django.db.models import Sum, Q, F
-from django.db.models.functions import TruncMonth, ExtractYear
+from django.db.models.functions import TruncMonth, ExtractYear, ExtractMonth, ExtractDay
 from django.http import HttpResponse, JsonResponse, request
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.template.loader import get_template
 from django.urls import reverse
-from django.utils import timezone
-
 from .forms import ItemForm, CategoryForm, PartyForm, CustomUserCreationForm, PurchaseForm, BillForm
 from .models import Item, Category, Parties,  Purchase, PurchaseItem, BillItem, Bill
 from xhtml2pdf import pisa
 
-import pdfkit  # You can also use xhtml2pdf, WeasyPrint, etc.
-
-
-
 # Home view
 def home(request):
-    return render(request, 'home.html')  # Home template
+    return render(request, 'home.html')
 
 @login_required
 def dashboard(request):
@@ -40,26 +26,49 @@ def dashboard(request):
 
 @login_required
 def dashboard_view(request):
-    # Aggregate data by year instead of day-by-day
-    sales = Bill.objects.filter(user=request.user).annotate(year=ExtractYear('created_at')).values('year').annotate(total=Sum('total_amount'))
-    purchases = Purchase.objects.filter(user=request.user).annotate(year=ExtractYear('created_at')).values('year').annotate(total=Sum('total_amount'))
+    # Aggregate data by day instead of month and year
+    sales = Bill.objects.filter(user=request.user).annotate(
+        year=ExtractYear('created_at'),
+        month=ExtractMonth('created_at'),
+        day=ExtractDay('created_at')
+    ).values('year', 'month', 'day').annotate(total=Sum('total_amount'))
 
-    # Process the data
-    sales_data = [float(sale['total']) for sale in sales]
-    purchase_data = [float(purchase['total']) for purchase in purchases]
+    purchases = Purchase.objects.filter(user=request.user).annotate(
+        year=ExtractYear('created_at'),
+        month=ExtractMonth('created_at'),
+        day=ExtractDay('created_at')
+    ).values('year', 'month', 'day').annotate(total=Sum('total_amount'))
 
-    # Extract the year labels
-    labels = [sale['year'] for sale in sales]
+    # Process data and prepare day-based labels
+    sales_data = {(sale['year'], sale['month'], sale['day']): float(sale['total']) for sale in sales}
+    purchase_data = {(purchase['year'], purchase['month'], purchase['day']): float(purchase['total']) for purchase in
+                     purchases}
 
-    # Calculate profit/loss data for each year
-    profit_loss_data = [
-        sales_data[i] - purchase_data[i] if i < len(purchase_data) else sales_data[i]
-        for i in range(len(sales_data))
-    ]
+    # Generate a sorted list of days for the labels
+    days = sorted(set(sales_data.keys()).union(purchase_data.keys()))
+
+    # Prepare data for sales, purchases, and profit/loss on a day-by-day basis
+    sales_data_list = []
+    purchase_data_list = []
+    profit_loss_data = []
+    labels = []
+
+    for day in days:
+        year, month, day_num = day
+        sales_total = sales_data.get(day, 0)
+        purchase_total = purchase_data.get(day, 0)
+
+        # Append to lists
+        sales_data_list.append(sales_total)
+        purchase_data_list.append(purchase_total)
+        profit_loss_data.append(sales_total - purchase_total)
+
+        # Label format: "Month Day, Year"
+        labels.append(f"{calendar.month_name[month]} {day_num}, {year}")
 
     context = {
-        'sales_data': sales_data,
-        'purchase_data': purchase_data,
+        'sales_data': sales_data_list,
+        'purchase_data': purchase_data_list,
         'profit_loss_data': profit_loss_data,
         'labels': labels,
     }
@@ -118,6 +127,11 @@ def add_item(request):
         form = ItemForm()
 
     return render(request, 'add_item.html', {'form': form})
+
+
+
+        # Redirect back to the purchase form with the new item's ID
+
 
 # View to update item
 @login_required
@@ -338,8 +352,6 @@ def view_bill(request, bill_id):
     }
     return render(request, 'bill_pdf_template.html', context)
 
-
-
 #  Generate and download PDF
 @login_required
 def download_bill_pdf(request,bill_id):
@@ -530,7 +542,8 @@ def create_purchase(request):
     # GET request: Render form with parties and items
     parties = Parties.objects.filter(user=request.user)
     items = Item.objects.filter(user=request.user)
-    return render(request, 'create_purchase.html', {'parties': parties, 'items': items})
+    selected_item_id = request.GET.get('item_id')
+    return render(request, 'create_purchase.html', {'parties': parties, 'items': items, 'selected_item_id': selected_item_id})
 
 @login_required
 def purchase_success(request):
@@ -654,23 +667,70 @@ def check_low_stock(request):
     low_stock_items = Item.objects.filter(stock_level__lt=F('low_stock_threshold'),user=request.user)
     return render(request, 'low_stock_alert.html', {'low_stock_items': low_stock_items})
 
+
 @login_required
 def profit_loss_report(request):
-    # Fetch total sales and total purchases
-     # Default to all bills if no filters applied
+    # Group sales and purchases by month and year
+    monthly_sales = (
+        Bill.objects.filter(user=request.user)
+        .annotate(year=ExtractYear('created_at'), month=ExtractMonth('created_at'))
+        .values('year', 'month')
+        .annotate(total=Sum('total_amount'))
+        .order_by('year', 'month')
+    )
 
-    total_sales = Bill.objects.filter(user=request.user).aggregate(total=Sum('total_amount'))['total'] or 0
-    total_purchases = Purchase.objects.filter(user=request.user).aggregate(total=Sum('total_amount'))['total'] or 0
+    monthly_purchases = (
+        Purchase.objects.filter(user=request.user)
+        .annotate(year=ExtractYear('created_at'), month=ExtractMonth('created_at'))
+        .values('year', 'month')
+        .annotate(total=Sum('total_amount'))
+        .order_by('year', 'month')
+    )
 
-    profit = total_sales - total_purchases
-    loss = abs(profit) if profit < 0 else 0
+    # Prepare a dictionary to hold profit/loss data for each month
+    profit_loss_data = {}
+    for sale in monthly_sales:
+        year_month = (sale['year'], sale['month'])
+        profit_loss_data[year_month] = {
+            'sales': sale['total'],
+            'purchases': 0,
+            'profit': 0,
+            'loss': 0
+        }
+
+    for purchase in monthly_purchases:
+        year_month = (purchase['year'], purchase['month'])
+        if year_month not in profit_loss_data:
+            profit_loss_data[year_month] = {
+                'sales': 0,
+                'purchases': purchase['total'],
+                'profit': 0,
+                'loss': 0
+            }
+        else:
+            profit_loss_data[year_month]['purchases'] = purchase['total']
+
+    # Calculate profit/loss for each month
+    for year_month, data in profit_loss_data.items():
+        sales = data['sales']
+        purchases = data['purchases']
+        profit = sales - purchases
+        data['profit'] = profit if profit > 0 else 0
+        data['loss'] = abs(profit) if profit < 0 else 0
+
+    # Convert year and month into readable labels
+    report_data = [
+        {
+            'month': f"{calendar.month_name[month]} {year}",
+            'sales': data['sales'],
+            'purchases': data['purchases'],
+            'profit': data['profit'],
+            'loss': data['loss']
+        }
+        for (year, month), data in sorted(profit_loss_data.items())
+    ]
 
     context = {
-        'total_sales': total_sales,
-        'total_purchases': total_purchases,
-        'profit': profit if profit > 0 else 0,
-        'loss': loss,
+        'report_data': report_data,
     }
     return render(request, 'profit_loss_report.html', context)
-
-

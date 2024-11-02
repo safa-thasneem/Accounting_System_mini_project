@@ -32,7 +32,10 @@
             justify-content: space-between;
             align-items: center;
         }
-
+           .navbar .logo img {
+                height: 40px; /* Adjust logo height */
+                width: auto;  /* Keeps aspect ratio */
+            }
         .navbar .logo {
             font-size: 28px;
             font-weight: bold;
@@ -49,6 +52,7 @@
         }
 
         .navbar a:hover {
+
             color: #ffcc00;
         }
 
@@ -120,7 +124,9 @@
 
     <!-- Navbar -->
     <div class="navbar">
-        <a href="/" class="logo">Accounting System</a>
+        <a href="{% url 'home' %}" class="logo">
+            <img src="{% static 'images/img.png' %}" alt="Accounting System Logo">Accounting System
+        </a>
         <div class="nav-links">
             <a href="{% url 'register' %}">
                 <i class="fas fa-user-plus"></i> Register

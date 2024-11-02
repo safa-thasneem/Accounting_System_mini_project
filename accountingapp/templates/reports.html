@@ -5,92 +5,150 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reports</title>
-
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-            display: flex; /* Use flexbox for layout */
-        }
-
-        /* Sidebar styling */
-        .sidebar {
-            width: 200px;
-            background-color: #333;
-            padding: 15px;
-            height: 100vh; /* Full height */
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-        }
-
-        .sidebar a {
-            display: block;
-            color: #f2f2f2;
+            background-image: url("{% static 'images/img_4.png' %}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+            margin: 10px;
             padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Navbar styles */
+        .navbar {
+            width: 99%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #2C3E50;
+            padding: 15px 20px;
+            color: #ecf0f1;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-logo img {
+            height: 40px;
+            margin-right: 10px;
+        }
+
+        .navbar-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-link {
+            color: #ecf0f1;
             text-decoration: none;
-            margin: 5px 0;
+            padding: 10px 15px;
+            border-radius: 4px;
+            transition: background 0.3s, transform 0.3s;
         }
 
-        .sidebar a:hover {
-            background-color: #ddd;
-            color: black;
+        .nav-link:hover {
+            background-color: #34495E;
+            transform: translateY(-1px);
         }
 
-        /* Main content styling */
-        .main-content {
-            flex-grow: 1; /* Allow main content to take remaining space */
-            padding: 20px;
+        .toggle-button {
+            display: none;
+            background: none;
+            border: none;
+            color: #ecf0f1;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Responsive Navbar */
+        @media (max-width: 768px) {
+            .navbar-links {
+                display: none;
+                flex-direction: column;
+                gap: 10px;
+                position: absolute;
+                top: 60px;
+                right: 0;
+                background-color: #2C3E50;
+                width: 100%;
+                padding: 10px 0;
+            }
+
+            .navbar-links.active {
+                display: flex;
+            }
+
+            .toggle-button {
+                display: block;
+            }
+        }
+
+        /* Main content styles */
+        .container {
+
+            width: 95%;
+            margin: 40px auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            text-align: left;
         }
 
         h1 {
-            color: #333;
-            margin-bottom: 20px;
+            color: black;
+            margin: 20px 0;
+            font-size: 2rem;
+            text-align: center;
         }
 
+        h2 {
+            margin-top: 30px;
+            color: #333;
+            font-size: 1.5rem;
+            border-bottom: 2px solid #2C3E50;
+            padding-bottom: 5px;
+        }
+
+        p {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        /* Button styles */
         .btn {
             display: inline-block;
-            padding: 14px 25px;
-            font-size: 18px;
-            text-decoration: none;
-            background-color: #007BFF;
+            padding: 10px 20px;
+            background-color: #808080;
             color: white;
-            border-radius: 5px;
-            margin: 10px 0; /* Margin for better spacing */
-            transition: background-color 0.3s;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            transition: background 0.3s, transform 0.3s;
         }
 
         .btn:hover {
-            background-color: #0056b3;
+            background-color: #45a049;
+            transform: translateY(-1px);
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            font-size: 16px;
-        }
-
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        th {
-            background-color: #f2f2f2;
-            color: #555;
-        }
-
-        tr:hover {
-            background-color: #f9f9f9;
-        }
-
+        /* Summary section */
         .summary {
             margin-top: 20px;
             padding: 20px;
             background-color: #f2f2f2;
             border-radius: 8px;
+            text-align: left;
         }
 
         .summary p {
@@ -106,33 +164,48 @@
 </head>
 <body>
 
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <h2>Accounting System</h2>
-        <a href="{% url 'dashboard' %}">Home</a>
-        <a href="{% url 'sales_report_view' %}">Sales Report</a>
-        <a href="{% url 'purchase_report_view' %}">Purchase Report</a>
-        <a href="{% url 'profit_loss_report' %}">Profit_loss Report</a>
-
-        <a href="">About Us</a>
-        <a href="{% url 'logout' %}">Logout</a>
+<nav class="navbar">
+    <div class="navbar-logo">
+        <img src="{% static 'images/img.png' %}" alt="Logo">
+        <span class="project-name">Accounting System</span>
     </div>
-
-    <!-- Main content -->
-    <div class="main-content">
-        <div class="container">
-            <h1>Reports</h1>
-            <p>Select a report  to view the details.</p>
-
-            <!-- Buttons to select the reports -->
-<!--            <a href="{% url 'sales_report_view' %}" class="btn">Sales Report</a>-->
-<!--            <a href="{% url 'purchase_report_view' %}" class="btn">Purchase Report</a>-->
-
-            <!-- Display reports here -->
-            {% block content %}
-            {% endblock %}
-        </div>
+    <div class="navbar-links">
+        <a href="{% url 'dashboard' %}" class="nav-link">Home</a>
+        <a href="{% url 'sales_report_view' %}" class="nav-link">Sales Report</a>
+        <a href="{% url 'purchase_report_view' %}" class="nav-link">Purchase Report</a>
+        <a href="{% url 'profit_loss_report' %}" class="nav-link">Profit & Loss</a>
+        <a href="{% url 'logout' %}" class="nav-link">Logout</a>
     </div>
+    <button class="toggle-button" onclick="toggleNavbar()">&#9776;</button>
+</nav>
+
+<div class="container">
+    <h1>Financial Reports</h1>
+
+    <h2>Sales Report</h2>
+    <p>
+        The sales report is an essential tool for tracking the revenue generated from goods or services over a specified period. It typically includes metrics such as total sales volume, average transaction value, and sales growth compared to previous periods. By analyzing sales trends, businesses can identify their best-performing products and services, as well as seasonal fluctuations in demand.
+    </p>
+    <a href="{% url 'sales_report_view' %}" class="btn">View Details</a>
+
+    <h2>Purchase Report</h2>
+    <p>
+        In contrast, the purchase report details the expenses incurred in acquiring goods or services necessary for the business’s operations. This report includes information on the quantities purchased, costs, suppliers, and payment terms. Analyzing purchase data helps businesses understand their spending patterns and manage their inventory levels effectively.
+    </p>
+    <a href="{% url 'purchase_report_view' %}" class="btn">View Details</a>
+
+    <h2>Profit & Loss Report</h2>
+    <p>
+        The profit and loss report, often referred to as the income statement, provides a holistic view of a company's financial performance by detailing revenues, costs, and expenses incurred during a specific period. The report calculates net profit or loss by subtracting total expenses from total revenues. This information is crucial for stakeholders to assess the company's ability to generate profit and manage its expenses efficiently.
+    </p>
+    <a href="{% url 'profit_loss_report' %}" class="btn">View Details</a>
+</div>
+
+<script>
+    function toggleNavbar() {
+        document.querySelector('.navbar-links').classList.toggle('active');
+    }
+</script>
 
 </body>
 </html>

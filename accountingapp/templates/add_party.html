@@ -54,7 +54,7 @@
 
         button {
             padding: 10px;
-            background-color: #4CAF50; /* Green color */
+            background-color: #4CAF50;
             color: white;
             border: none;
             border-radius: 5px;
@@ -85,16 +85,22 @@
 </head>
 <body>
     <div class="container">
-        <h2>Add Party</h2>
+        <h1>Add Party</h1>
         <form method="POST">
-            {% csrf_token %}
-            {{ form.as_p }} <!-- Render the form -->
-            <button type="submit">Add Party</button>
-        </form>
-
-        <div class="back-link">
-            <a href="{% url 'party_list' %}">Back to Party List</a>
-        </div>
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="id_name">Name</label>
+        <input type="text" name="name" id="id_name" maxlength="100" required pattern="[A-Za-z\s]+" title="Name can only contain alphabetic characters and spaces.">
+    </div>
+    <div class="form-group">
+        <label for="id_phone_number">Phone Number</label>
+        <input type="tel" name="phone_number" id="id_phone_number" maxlength="15" required pattern="[0-9]+" title="Phone number must contain only numeric digits.">
+    </div>
+            <br>
+    <button type="submit">Add Party</button>
+            <br>
+</form>
+        <center><a href="{% url 'party_list' %}">Back to Party List</a></center>
     </div>
 </body>
 </html>

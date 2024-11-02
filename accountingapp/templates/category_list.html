@@ -15,6 +15,57 @@
             background-color: #f4f4f4;
         }
 
+        /* Navigation Bar Styles */
+        .navbar {
+            background-color: #2C3E50;
+            padding: 15px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar-container {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .navbar-logo img {
+            height: 40px;
+            margin-right: 10px;
+        }
+
+        .navbar-links {
+            display: flex;
+            gap: 15px;
+            margin-left: auto;
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .nav-link:hover {
+            background-color: #007BFF;
+        }
+
+        .toggle-button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            display: none; /* Hide toggle button on larger screens */
+        }
+
+        /* Container Styles */
         .container {
             max-width: 1400px;
             margin: 20px auto;
@@ -31,6 +82,7 @@
         }
 
         a.add-category {
+            text-align: right;
             display: block;
             width: fit-content;
             margin: 10px auto;
@@ -39,7 +91,7 @@
             color: white;
             text-decoration: none;
             border-radius: 5px;
-            text-align: center;
+
         }
 
         a.add-category:hover {
@@ -71,20 +123,102 @@
             background-color: #f1f1f1;
         }
 
-        .action-links a {
-            margin-right: 10px;
-            color: #007BFF;
-            text-decoration: none;
+        .action-buttons {
+            display: flex;
+            gap: 10px;
         }
 
-        .action-links a:hover {
-            text-decoration: underline;
+        .action-buttons button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .update-button {
+            background-color: #007BFF;
+            color: white;
+        }
+
+        .update-button:hover {
+            background-color: #0056b3;
+        }
+
+        .delete-button {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .delete-button:hover {
+            background-color: #c82333;
+        }
+
+
+        .navbar-logo img {
+            height: 40px; /* Set height to control size */
+            width: auto; /* Maintains aspect ratio */
+            margin-right: 10px;
+        }
+        .navbar-logo {
+            display: flex;
+            align-items: center;
+        }
+        .navbar-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+
+        /* Responsive Table for Mobile */
+        @media (max-width: 768px) {
+            .navbar-logo img {
+                height: 30px;
+            }
+            .navbar-links {
+                display: none;
+                flex-direction: column;
+                gap: 10px;
+                position: absolute;
+                top: 60px;
+                right: 0;
+                background-color: #2C3E50;
+                width: 100%;
+                padding: 10px 0;
+            }
+
+            .navbar-links.active {
+                display: flex;
+            }
+
+            .toggle-button {
+                display: block; /* Show toggle button on smaller screens */
+            }
         }
     </style>
 </head>
 <body>
+<nav class="navbar">
+    <div class="navbar-container">
+        <div class="navbar-logo">
+            <img src="{% static 'images/img.png' %}" alt="Logo">
+            <span class="project-name">Accounting System</span>
+        </div>
+        <div class="navbar-links">
+            <a href="{% url 'dashboard' %}" class="nav-link">Home</a>
+            <a href="{% url 'category_list' %}" class="nav-link">Category</a>
+            <a href="{% url 'item_list' %}" class="nav-link">Item</a>
+            <a href="{% url 'party_list' %}" class="nav-link">Parties</a>
+            <a href="{% url 'create_bill' %}" class="nav-link">Billing</a>
+            <a href="{% url 'create_purchase' %}" class="nav-link">Purchase</a>
+            <a href="{% url 'report' %}" class="nav-link">Reports</a>
+            <a href="{% url 'logout' %}" class="nav-link">Logout</a>
+        </div>
+        <button class="toggle-button" onclick="toggleNavbar()"><i class="fas fa-bars"></i></button>
+    </div>
+</nav>
     <div class="container">
-        <a href="{% url 'dashboard' %}" class="back-home">Back to Home</a>
         <h1>Category List</h1>
         <a href="{% url 'add_category' %}" class="add-category">Add Category</a>
 
@@ -99,9 +233,13 @@
                 {% for category in categories %}
                 <tr>
                     <td>{{ category.name }}</td>
-                    <td class="action-links">
-                        <a href="{% url 'update_category' category.pk %}">Update</a>
-                        <a href="{% url 'delete_category' category.pk %}">Delete</a>
+                    <td class="action-buttons">
+                        <a href="{% url 'update_category' category.pk %}">
+                            <button class="update-button"><i class="fas fa-edit"></i> Update</button>
+                        </a>
+                        <a href="{% url 'delete_category' category.pk %}">
+                            <button class="delete-button"><i class="fas fa-trash-alt"></i> Delete</button>
+                        </a>
                     </td>
                 </tr>
                 {% empty %}
@@ -112,5 +250,12 @@
             </tbody>
         </table>
     </div>
+
+    <script>
+        function toggleNavbar() {
+            const navbarLinks = document.querySelector('.navbar-links');
+            navbarLinks.classList.toggle('active');
+        }
+    </script>
 </body>
 </html>
